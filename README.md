@@ -1,15 +1,15 @@
 # QR Code Detector
 A simple python application that detects QR codes in an image.
 
-# Getting Started
+## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-# Prerequisites
+## Prerequisites
 Python 3.x
 OpenCV
 Numpy
 Pyzbar
-# Installing
+## Installing
 Clone the repository
 
 $ git clone https://github.com/your-username/qr-detector.git
