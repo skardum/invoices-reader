@@ -29,5 +29,5 @@ OpenCV - A computer vision and machine learning software library.
 Numpy - A library for the Python programming language, adding support for large, multi-dimensional arrays and matrices.
 Pyzbar - A library for reading barcodes and QR codes.
 
-##Contributions
+## Contributions
 Contributions are welcome! If you have any suggestions or improvements, feel free to submit a pull request.
