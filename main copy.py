@@ -9,7 +9,7 @@ import string
 def remove_non_printable(text):
 
     # Replace "☺,☻,♥,♦,♠,♣,§,¶" with ","
-    chars_to_remove = "?,☺,☻,♥,♦,♠,♣,§,¶"
+    chars_to_remove = "?,☺,☻,♥,♦,♠,♣,§,¶,+,=,&"
     for char in chars_to_remove:
         text = text.replace(char, ",")
 
@@ -21,7 +21,7 @@ def remove_non_printable(text):
     cleaned_string = text.replace("\x01", ",").replace("\x02", ",").replace(
         "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",")
     cleaned_string = cleaned_string.replace("\x0f", ",").replace(
-        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "")
+        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",")
     # Split the string by "," and store it into a list
     result = cleaned_string.split(",")
     result2 = list(filter(None, result))
@@ -33,8 +33,8 @@ def decode_qr_code(image):
     # Preprocess the image
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    threshold = cv2.threshold(
-        blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    threshold = cv2.adaptiveThreshold(
+        blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 2)
     # Detect QR codes
     qr_detections = pyzbar.decode(threshold)
     for detection in qr_detections:
@@ -50,7 +50,7 @@ def decode_qr_code(image):
     return None, threshold
 
 
-folder_path = r'New folder'
+folder_path = r'C:\Users\moham\desktop\New folder2'
 result_folder = os.path.join(folder_path, "Results")
 if not os.path.exists(result_folder):
     os.makedirs(result_folder)
@@ -76,10 +76,10 @@ for file_name in os.listdir(folder_path):
             print(invoice_data)
             sheet.write(row_num, 0, file_path)
             sheet.write(row_num, 1, invoice_data[0])
-            sheet.write(row_num, 2, int(invoice_data[1]))
+            sheet.write(row_num, 2, invoice_data[1])
             sheet.write(row_num, 3, invoice_data[2])
-            sheet.write(row_num, 4, float(invoice_data[3]))
-            sheet.write(row_num, 5, float(invoice_data[4]))
+            sheet.write(row_num, 4, invoice_data[3])
+            sheet.write(row_num, 5, invoice_data[4])
             result_file = os.path.join(result_folder, file_name)
             cv2.imwrite(result_file, threshold)
         else:
