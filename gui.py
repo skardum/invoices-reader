@@ -16,9 +16,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('Image to Excel Converter')
+        self.setWindowTitle('invoices reader')
         self.setGeometry(100, 100, 500, 300)
-        self.setWindowIcon(QtGui.QIcon('icon.png'))
+        # self.setWindowIcon(QtGui.QIcon('icon.png'))
 
         self.browseButton1 = QtWidgets.QPushButton('Choose Image Folder', self)
         self.browseButton1.setGeometry(150, 50, 200, 30)
@@ -34,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.browseButton3.setGeometry(150, 150, 200, 30)
         self.browseButton3.clicked.connect(self.save_location)
 
-        self.convertButton = QtWidgets.QPushButton('Convert', self)
+        self.convertButton = QtWidgets.QPushButton('start', self)
         self.convertButton.setGeometry(200, 200, 100, 30)
         self.convertButton.clicked.connect(self.convert)
 
@@ -42,19 +42,19 @@ class MainWindow(QtWidgets.QMainWindow):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         self.folder_path = str(
-            QFileDialog.getExistingDirectory(self, "Select Image Folder"))
+            QFileDialog.getExistingDirectory(self, "Select invoices Images Folder"))
 
     def choose_result_folder(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         self.result_folder = str(
-            QFileDialog.getExistingDirectory(self, "Select Result Folder"))
+            QFileDialog.getExistingDirectory(self, "Select processed images Folder"))
 
     def save_location(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         file_path, _ = QFileDialog.getSaveFileName(
-            self, "Select Save Location", "", "Excel Files (*.xls);;All Files (*)")
+            self, "Select excel file Location", "", "Excel Files (*.xls);;All Files (*)")
         self.location = file_path
         if not file_path.endswith('.xls'):
             self.location = file_path + '.xls'
