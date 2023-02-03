@@ -20,14 +20,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setGeometry(100, 100, 500, 300)
         # self.setWindowIcon(QtGui.QIcon('icon.png'))
 
-        self.browseButton1 = QtWidgets.QPushButton('Choose Image Folder', self)
+        self.browseButton1 = QtWidgets.QPushButton('Choose invoices Folder', self)
         self.browseButton1.setGeometry(150, 50, 200, 30)
         self.browseButton1.clicked.connect(self.choose_folder)
-
-        self.browseButton2 = QtWidgets.QPushButton(
-            'Choose Result Folder', self)
-        self.browseButton2.setGeometry(150, 100, 200, 30)
-        self.browseButton2.clicked.connect(self.choose_result_folder)
 
         self.browseButton3 = QtWidgets.QPushButton(
             'Choose Save Location', self)
@@ -44,11 +39,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.folder_path = str(
             QFileDialog.getExistingDirectory(self, "Select invoices Images Folder"))
 
-    def choose_result_folder(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.ReadOnly
-        self.result_folder = str(
-            QFileDialog.getExistingDirectory(self, "Select processed images Folder"))
 
     def save_location(self):
         options = QFileDialog.Options()
@@ -103,9 +93,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 return None, threshold
 
             folder_path = self.folder_path
-            result_folder = self.result_folder
-            if not os.path.exists(result_folder):
-                os.makedirs(result_folder)
 
             workbook = xlwt.Workbook()
             sheet = workbook.add_sheet("QR code data")
@@ -132,8 +119,6 @@ class MainWindow(QtWidgets.QMainWindow):
                         sheet.write(row_num, 3, invoice_data[2])
                         sheet.write(row_num, 4, invoice_data[3])
                         sheet.write(row_num, 5, invoice_data[4])
-                        result_file = os.path.join(result_folder, file_name)
-                        cv2.imwrite(result_file, threshold)
                     else:
                         print("qr not detected")
 
@@ -141,10 +126,10 @@ class MainWindow(QtWidgets.QMainWindow):
             workbook.save(self.location)
 
             QMessageBox.information(
-                self, 'Information', 'Image to excel conversion successful!')
+                self, 'Information', 'invoices read successful!')
         except Exception as e:
             QMessageBox.critical(
-                self, 'Error', 'Image to excel conversion failed: {}'.format(str(e)))
+                self, 'Error', 'invoices read failed: {}'.format(str(e)))
 
 
 if __name__ == '__main__':
