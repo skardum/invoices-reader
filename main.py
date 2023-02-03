@@ -9,7 +9,7 @@ import string
 def remove_non_printable(text):
 
     # Replace "☺,☻,♥,♦,♠,♣,§,¶" with ","
-    chars_to_remove = "?,☺,☻,♥,♦,♠,♣,§,¶,+,=,&"
+    chars_to_remove = "?,☺,☻,♥,♦,♠,♣,§,¶,+,="
     for char in chars_to_remove:
         text = text.replace(char, ",")
 
@@ -19,7 +19,7 @@ def remove_non_printable(text):
     # Remove duplicate ","
     text = ','.join(text.split(","))
     cleaned_string = text.replace("\x01", ",").replace("\x02", ",").replace(
-        "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",")
+        "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",").replace("\x1f", ",").replace("\x1a", ",")
     cleaned_string = cleaned_string.replace("\x0f", ",").replace(
         "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",")
     # Split the string by "," and store it into a list
