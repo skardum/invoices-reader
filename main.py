@@ -48,41 +48,4 @@ def decode_qr_code(image):
             print("An exception occurred")
             return None, threshold
 
-
-folder_path = r'C:\Users\moham\desktop\New folder (2)'
-result_folder = os.path.join(folder_path, "Results")
-if not os.path.exists(result_folder):
-    os.makedirs(result_folder)
-
-workbook = xlwt.Workbook()
-sheet = workbook.add_sheet("QR code data")
-sheet.write(0, 0, "Image File")
-sheet.write(0, 1, "Name of Seller")
-sheet.write(0, 2, "VAT Number")
-sheet.write(0, 3, "Date and Time")
-sheet.write(0, 4, "Total Amount")
-sheet.write(0, 5, "VAT Amount")
-
-row_num = 1
-for file_name in os.listdir(folder_path):
-    file_path = os.path.join(folder_path, file_name)
-    if os.path.isfile(file_path):
-        print(f"Processing: {file_path}")
-        image = cv2.imread(file_path)
-        invoice_data, threshold = decode_qr_code(image)
-        if invoice_data:
-            invoice_data = remove_non_printable(invoice_data)
-            print(invoice_data)
-            sheet.write(row_num, 0, file_path)
-            sheet.write(row_num, 1, invoice_data[0])
-            sheet.write(row_num, 2, invoice_data[1])
-            sheet.write(row_num, 3, invoice_data[2])
-            sheet.write(row_num, 4, invoice_data[3])
-            sheet.write(row_num, 5, invoice_data[4])
-            result_file = os.path.join(result_folder, file_name)
-            cv2.imwrite(result_file, threshold)
-        else:
-            print("qr not detected")
-
-        row_num += 1
-workbook.save("QR code data.xls")
+    return None, threshold
