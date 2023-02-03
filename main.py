@@ -47,7 +47,6 @@ def decode_qr_code(image):
         except:
             print("An exception occurred")
             return None, threshold
-    return None, threshold
 
 
 folder_path = r'C:\Users\moham\desktop\New folder (2)'
