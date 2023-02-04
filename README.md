@@ -1,6 +1,6 @@
 # QR Code Detector
 
-A simple python application that detects QR codes in an image.
+A simple python application that detects QR codes in an image of invoices that made according to zatca instructions and saves invoices data to an excel file.
 
 ## Getting Started
 
