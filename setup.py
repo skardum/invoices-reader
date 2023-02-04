@@ -2,7 +2,7 @@ import sys
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os", "QtWidgets", "sys", "cv2", "xlwt", "QFileDialog", "QMessageBox", "QtGui",
+build_exe_options = {"packages": ["os", "PyQt5", "sys", "cv2", "xlwt", "main",
                                   "pyzbar.pyzbar", "base64", "string"], "excludes": ["tkinter"]}
 
 # GUI applications require a different base on Windows (the default is for a
