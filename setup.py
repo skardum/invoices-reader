@@ -1,18 +1,20 @@
-import sys
-from cx_Freeze import setup, Executable
+from distutils.core import setup
+import py2exe
 
-# Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os", "PyQt5", "sys", "cv2", "xlwt", "main",
-                                  "pyzbar.pyzbar", "base64", "string"], "excludes": ["tkinter"]}
+setup(
+    console=['src/main.py'],  # Specify your main script here
+    data_files=[
+        ('', ['src/gg.xlsx', 'src/qrdetector.ui',
+         'src/README.md', 'src/requirements.txt'])
+    ],
+    options={
+        'py2exe': {
+            'packages': [],  # Exclude all packages
+            'excludes': ['tkinter']  # Exclude 'tkinter' module if necessary
+        }
+    },
+    zipfile=None  # Do not create a zipfile
+)
 
-# GUI applications require a different base on Windows (the default is for a
-# console application).
-base = None
-if sys.platform == "win32":
-    base = "Win32GUI"
-
-setup(name="invoices reader",
-      version="0.1",
-      description="invoices reader",
-      options={"build_exe": build_exe_options},
-      executables=[Executable("gui.py", base=base)])
+# pip install py2exe
+# python setup.py py2exe
