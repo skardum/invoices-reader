@@ -1,6 +1,12 @@
 # QR Code Detector
 
-A simple python application that detects QR codes in an image of invoices that made according to zatca instructions and saves invoices data to an excel file.
+a Python application for detecting QR codes in an image of invoices that made according to zatca. It provides a graphical user interface (GUI) built using PyQt5, allowing users to select a folder containing images with QR codes and specify an Excel file location to save the decoded data.
+
+## Features:
+
+- **QR Code Detection** : Utilizes OpenCV and pyzbar to detect QR codes from images.
+- **Graphical User Interface** : Built with PyQt5 for easy interaction.
+- **Excel Export** : Saves decoded QR code data to an Excel file for further analysis.
 
 ## Getting Started
 
