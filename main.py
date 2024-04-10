@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
@@ -7,6 +8,49 @@ import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
 import openpyxl
+
+# Define the dark theme stylesheet
+dark_theme_stylesheet = """
+QWidget {
+    background-color: #333;
+    color: #fff;
+}
+
+QPushButton {
+    background-color: #555;
+    color: #fff;
+    border: 2px solid #444;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background-color: #666;
+}
+
+QLineEdit, QTextEdit {
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #222;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+QLabel {
+    color: #fff;
+}
+
+QProgressBar {
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #222;
+    border-radius: 5px;
+}
+
+QProgressBar::chunk {
+    background-color: #666;
+}
+"""
 
 
 def remove_non_printable(text):
@@ -62,6 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.previous.clicked.connect(self.load_previous_invoice)
         self.first.clicked.connect(self.load_first_invoice)
         self.current_row = 2  # Start from row 2 to skip header
+        # Apply dark theme stylesheet
+        self.setStyleSheet(dark_theme_stylesheet)
 
     def load_invoice_data(self, row):
         try:
