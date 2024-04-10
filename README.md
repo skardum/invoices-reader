@@ -1,4 +1,4 @@
-# QR Code Detector
+# invoices reader
 
 a Python application for detecting QR codes in an image of invoices that made according to zatca. It provides a graphical user interface (GUI) built using PyQt5, allowing users to select a folder containing images with QR codes and specify an Excel file location to save the decoded data.
 
