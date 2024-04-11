@@ -34,7 +34,7 @@ def ocr_and_ai_extraction(image_path):
 
 def process_text_and_fill_ui(extracted_text):
     try:
-        response = ollama.chat(model='stablelm-zephyr', messages=[
+        response = ollama.chat(model='llama2', messages=[
             {
                 'role': 'user',
                 f'content': '{extracted_text}\nExtract from this ocr extracted text Name of vendor, vendor VAT id, Date, Total Amount, and VAT Amount from this invoice, and format the extracted information as a dictionary with keys: "vendor_name" "vendor_vat_id" "date" "invoice_total" and "vat_amount" and dont give me any instructions or text just the dictionary only also dont give me dum data.',
