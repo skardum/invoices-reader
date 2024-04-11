@@ -60,6 +60,8 @@ class ProgressDialog(QDialog):
         super(ProgressDialog, self).__init__(parent)
         loadUi('progress_dialog.ui', self)  # Load the UI file
         self.setModal(True)
+        self.setWindowTitle("Processing")
+        self.progressBar.setRange(0, 0)  # Indeterminate progress bar
 
 
 class AiExtractThread(Thread):
