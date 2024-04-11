@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
 from PyQt5.uic import loadUi
 import os
 import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
 import openpyxl
+from invoice_ocr_ai import ocr_and_ai_extraction, process_text_and_fill_ui, update_ui_with_data
+from threading import Thread
 
 # Define the dark theme stylesheet
 dark_theme_stylesheet = """
@@ -51,6 +53,29 @@ QProgressBar::chunk {
     background-color: #666;
 }
 """
+
+
+class ProgressDialog(QDialog):
+    def __init__(self, parent=None):
+        super(ProgressDialog, self).__init__(parent)
+        loadUi('progress_dialog.ui', self)  # Load the UI file
+        self.setModal(True)
+
+
+class AiExtractThread(Thread):
+    def __init__(self, image_path, ui, parent=None):
+        super(AiExtractThread, self).__init__(parent)
+        self.image_path = image_path
+        self.ui = ui
+        self.progress_dialog = ProgressDialog()
+        self.progress_dialog.show()
+
+    def run(self):
+        extracted_text = ocr_and_ai_extraction(self.image_path)
+        if extracted_text:
+            parsed_data = process_text_and_fill_ui(extracted_text)
+            if parsed_data:
+                update_ui_with_data(self.ui, parsed_data)
 
 
 def remove_non_printable(text):
@@ -108,6 +133,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_row = 2  # Start from row 2 to skip header
         # Apply dark theme stylesheet
         self.setStyleSheet(dark_theme_stylesheet)
+        # Connect the AI extract button to the new model
+        self.ai_button.clicked.connect(self.ai_extract)
+
+    def ai_extract(self):
+        # Get the currently displayed pixmap from the graphics view
+        pixmap = self.graphicsView.scene().items()[0].pixmap()
+
+        # Convert pixmap to image
+        image = pixmap.toImage()
+
+        # Save the image to a temporary file (or use it directly if supported by ocr_and_ai_extraction)
+        image_path = "temp_image.jpg"  # Temporary image path
+        image.save(image_path)
+
+        ai_thread = AiExtractThread(image_path, self)
+        ai_thread.start()
 
     def load_invoice_data(self, row):
         try:
