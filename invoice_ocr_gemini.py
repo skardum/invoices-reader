@@ -1,6 +1,5 @@
 # invoice_ocr_gemini_pro.py
 
-import paddleocr
 import re
 from dotenv import load_dotenv
 import os
