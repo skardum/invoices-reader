@@ -2,3 +2,6 @@ opencv-python
 PyQt5
 openpyxl
 pyzbar
+pillow
+python-dotenv
+google-generativeai
