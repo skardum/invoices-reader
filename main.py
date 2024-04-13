@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
@@ -8,8 +7,9 @@ import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
 import openpyxl
-from invoice_ocr_ai import ocr_and_ai_extraction, process_text_and_fill_ui, update_ui_with_data
+from ai import process_text_and_fill_ui, update_ui_with_data
 from threading import Thread
+import PIL.Image
 
 # Define the dark theme stylesheet
 dark_theme_stylesheet = """
@@ -73,11 +73,15 @@ class AiExtractThread(Thread):
         self.progress_dialog.show()
 
     def run(self):
-        extracted_text = ocr_and_ai_extraction(self.image_path)
-        if extracted_text:
-            parsed_data = process_text_and_fill_ui(extracted_text)
-            if parsed_data:
-                update_ui_with_data(self.ui, parsed_data)
+        try:
+            # Read the image file
+            with open(self.image_path, 'rb') as file:
+                image_data = PIL.Image.open(file)
+                parsed_data = process_text_and_fill_ui(image_data)
+                if parsed_data:
+                    update_ui_with_data(self.ui, parsed_data)
+        except Exception as e:
+            print(f"Error during AI extraction: {e}")
 
 
 def remove_non_printable(text):
@@ -107,14 +111,28 @@ def decode_qr_code(image):
     threshold = cv2.adaptiveThreshold(
         blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 2)
     qr_detections = pyzbar.decode(threshold)
+
     for detection in qr_detections:
         data = detection.data
         try:
             text = base64.b64decode(data).decode("utf-8")
             return text, threshold
         except:
-            return "qr not detected,0,0,0,0", threshold
-    return "qr not detected,0,0,0,0", threshold
+            try:
+                image_data = PIL.Image.fromarray(
+                    cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                parsed_data = process_text_and_fill_ui(image_data)
+                if parsed_data:
+                    # Construct the text string from the parsed data
+                    text = f"{parsed_data['vendor_name']},{parsed_data['vendor_vat_id']},{parsed_data['date']},{parsed_data['invoice_total']},{parsed_data['vat_amount']}"
+                    return text, threshold
+            except Exception as e:
+                print(f"Error during Gemini AI processing: {e}")
+
+            # If both QR detection and Gemini AI fail, return None
+            return None, threshold
+
+    return None, threshold
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -273,8 +291,14 @@ class MainWindow(QtWidgets.QMainWindow):
                             char for char in item if char.isprintable()) for item in invoice_data]
                         sheet.append([file_path] + cleaned_invoice_data)
                     else:
-                        sheet.append(
-                            [file_path, "qr not detected", 0, 0, 0, 0])
+                        image_data = PIL.Image.open(file_path)
+                        parsed_data = process_text_and_fill_ui(image_data)
+                        if parsed_data:
+                            sheet.append([file_path, parsed_data['vendor_name'], parsed_data['vendor_vat_id'],
+                                          parsed_data['date'], parsed_data['invoice_total'], parsed_data['vat_amount']])
+                        else:
+                            sheet.append(
+                                [file_path, "qr not detected", 0, 0, 0, 0])
 
                     self.progressBar.setValue(sheet.max_row)
 
