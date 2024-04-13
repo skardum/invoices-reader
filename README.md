@@ -42,6 +42,8 @@ $ pip install -r requirements.txt
 
 ## Obtain API keys for Gemini AI, and store them in a `.env` file:
 
+https://aistudio.google.com/app/apikey
+
 GOOGLE_API_KEY="your_google_api_key"
 
 ## Running the Application
