@@ -1,6 +1,8 @@
 import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
+from PyQt5 import QtCore
+
 from PyQt5.uic import loadUi
 import os
 import cv2
@@ -195,7 +197,7 @@ class MainWindow(QtWidgets.QMainWindow):
             image_path = image_path.replace("\\", "/")
 
             print("Attempting to load image from:",
-                  image_path)  # Debug statement
+                image_path)  # Debug statement
 
             vendor_name = self.sheet.cell(row=row, column=2).value
             vat_id = self.sheet.cell(row=row, column=3).value
@@ -207,16 +209,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 print("Image exists at:", image_path)  # Debug statement
                 pixmap = QtGui.QPixmap(image_path)
                 if not pixmap.isNull():
+                    # Scale pixmap to fit the QGraphicsView
+                    scaled_pixmap = pixmap.scaled(self.graphicsView.size(), QtCore.Qt.KeepAspectRatio)
                     scene = QtWidgets.QGraphicsScene()
-                    pixmap_item = QtWidgets.QGraphicsPixmapItem(pixmap)
+                    pixmap_item = QtWidgets.QGraphicsPixmapItem(scaled_pixmap)
                     scene.addItem(pixmap_item)
                     self.graphicsView.setScene(scene)
                 else:
                     print("Failed to load image at:",
-                          image_path)  # Debug statement
+                        image_path)  # Debug statement
             else:
                 print("Image does not exist at:",
-                      image_path)  # Debug statement
+                    image_path)  # Debug statement
 
             self.vendor_lineedit.setText(str(vendor_name))
             self.vatid_lineedit.setText(str(vat_id))
@@ -226,6 +230,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to load invoice data: {str(e)}')
+
 
     def load_next_invoice(self):
         if self.sheet is not None:
