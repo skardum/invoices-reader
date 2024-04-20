@@ -1,17 +1,71 @@
+# Import necessary modules
 import sys
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
-from PyQt5 import QtCore
-
-from PyQt5.uic import loadUi
 import os
 import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
 import openpyxl
-from ai import process_text_and_fill_ui, update_ui_with_data
 from threading import Thread
 import PIL.Image
+
+# PyQt5 imports
+from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
+from PyQt5.uic import loadUi
+from PyQt5.QtCore import pyqtSignal
+
+# Add the AI functionality from invoice_ocr_gemini_pro.py
+import re
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+# Load environment variables
+load_dotenv()
+
+# Configure Google API
+os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+
+
+
+def process_text_and_fill_ui(image_data):
+    try:
+        model = genai.GenerativeModel('gemini-pro-vision')
+        response = model.generate_content([
+            "Extract from this invoice Name of vendor, vendor VAT id, Date, Total Amount, and VAT Amount , and format the extracted information as a dictionary with keys: vendor_name vendor_vat_id date invoice_total and vat_amount and dont give me any instructions or text just the dictionary only also dont give me dum data.",
+            image_data
+        ])
+
+        print(response.text)
+        pattern = r'{.*?}'
+        match = re.search(pattern, response.text, re.DOTALL)
+        if match:
+            print(match)
+            dictionary_text = match.group()
+            parsed_data = eval(dictionary_text)
+            return parsed_data
+        else:
+            print("No dictionary found in the gemini output.")
+            return None
+    except Exception as e:
+        print(f"Error during gemini processing: {e}")
+        return None
+
+
+def update_ui_with_data(ui, data):
+    ui.vendor_lineedit.setText(data.get('vendor_name', ''))
+    ui.vatid_lineedit.setText(data.get('vendor_vat_id', ''))
+    ui.date_lineedit.setText(data.get('date', ''))
+
+    # Convert float to string before setting the text
+    invoice_total = str(data.get('invoice_total', ''))
+    ui.total_lineedit.setText(invoice_total)
+
+    # Convert float to string before setting the text
+    vat_amount = str(data.get('vat_amount', ''))
+    ui.vatamount_lineedit.setText(vat_amount)
+
 
 # Define the dark theme stylesheet
 dark_theme_stylesheet = """
@@ -66,24 +120,34 @@ class ProgressDialog(QDialog):
         self.progressBar.setRange(0, 0)  # Indeterminate progress bar
 
 
-class AiExtractThread(Thread):
+class AiExtractor(QtCore.QObject):
+    progress_changed = pyqtSignal(int, str)  # Signal for progress updates
+    started = pyqtSignal()  # Signal for indicating start of processing
+
     def __init__(self, image_path, ui, parent=None):
-        super(AiExtractThread, self).__init__(parent)
+        super(AiExtractor, self).__init__(parent)
         self.image_path = image_path
         self.ui = ui
-        self.progress_dialog = ProgressDialog()
-        self.progress_dialog.show()
 
-    def run(self):
+    def extract(self):
+        self.started.emit()  # Emit signal indicating start of processing
+
         try:
             # Read the image file
             with open(self.image_path, 'rb') as file:
                 image_data = PIL.Image.open(file)
+                self.progress_changed.emit(25, "Image loaded")  # Emit progress update
                 parsed_data = process_text_and_fill_ui(image_data)
                 if parsed_data:
+                    self.progress_changed.emit(50, "Data extracted")  # Emit progress update
                     update_ui_with_data(self.ui, parsed_data)
+                    self.progress_changed.emit(100, "Extraction complete")  # Emit progress update
+                else:
+                    self.progress_changed.emit(0, "No data extracted")  # Emit progress update
+        except FileNotFoundError:
+            self.progress_changed.emit(0, "File not found")  # Emit progress update
         except Exception as e:
-            print(f"Error during AI extraction: {e}")
+            self.progress_changed.emit(0, f"Error: {str(e)}")  # Emit progress update
 
 
 def remove_non_printable(text):
@@ -120,18 +184,6 @@ def decode_qr_code(image):
             text = base64.b64decode(data).decode("utf-8")
             return text, threshold
         except:
-            try:
-                image_data = PIL.Image.fromarray(
-                    cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-                parsed_data = process_text_and_fill_ui(image_data)
-                if parsed_data:
-                    # Construct the text string from the parsed data
-                    text = f"{parsed_data['vendor_name']},{parsed_data['vendor_vat_id']},{parsed_data['date']},{parsed_data['invoice_total']},{parsed_data['vat_amount']}"
-                    return text, threshold
-            except Exception as e:
-                print(f"Error during Gemini AI processing: {e}")
-
-            # If both QR detection and Gemini AI fail, return None
             return None, threshold
 
     return None, threshold
@@ -158,6 +210,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Connect the AI extract button to the new model
         self.ai_button.clicked.connect(self.ai_extract)
 
+        # Initialize progress dialog
+        self.progress_dialog = None
+
     def ai_extract(self):
         # Get the currently displayed pixmap from the graphics view
         pixmap = self.graphicsView.scene().items()[0].pixmap()
@@ -165,12 +220,36 @@ class MainWindow(QtWidgets.QMainWindow):
         # Convert pixmap to image
         image = pixmap.toImage()
 
-        # Save the image to a temporary file (or use it directly if supported by ocr_and_ai_extraction)
-        image_path = "temp_image.jpg"  # Temporary image path
+        # Save the image to a temporary file
+        image_path = "temp_image.jpg"
         image.save(image_path)
 
-        ai_thread = AiExtractThread(image_path, self)
-        ai_thread.start()
+        # Create an instance of AiExtractor and move it to a separate thread
+        self.ai_extractor = AiExtractor(image_path, self)
+        self.ai_thread = QtCore.QThread()
+        self.ai_extractor.moveToThread(self.ai_thread)
+
+        # Connect signals
+        self.ai_extractor.progress_changed.connect(self.update_progress)
+        self.ai_extractor.started.connect(self.show_progress_dialog)
+        self.ai_thread.started.connect(self.ai_extractor.extract)
+
+        # Start the thread
+        self.ai_thread.start()
+    
+    def show_progress_dialog(self):
+        # Show progress dialog when processing starts
+        self.progress_dialog = ProgressDialog()
+        self.progress_dialog.show()
+
+    def update_progress(self, value, message):
+        # Update progress dialog and UI with progress information
+        self.progress_dialog.progressBar.setValue(value)
+        self.progress_dialog.progressLabel.setText(message)
+
+        # Close progress dialog when progress reaches 100
+        if value == 100:
+            self.progress_dialog.close()
 
     def load_invoice_data(self, row):
         try:
@@ -296,13 +375,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             char for char in item if char.isprintable()) for item in invoice_data]
                         sheet.append([file_path] + cleaned_invoice_data)
                     else:
-                        image_data = PIL.Image.open(file_path)
-                        parsed_data = process_text_and_fill_ui(image_data)
-                        if parsed_data:
-                            sheet.append([file_path, parsed_data['vendor_name'], parsed_data['vendor_vat_id'],
-                                          parsed_data['date'], parsed_data['invoice_total'], parsed_data['vat_amount']])
-                        else:
-                            sheet.append(
+                        sheet.append(
                                 [file_path, "qr not detected", 0, 0, 0, 0])
 
                     self.progressBar.setValue(sheet.max_row)
