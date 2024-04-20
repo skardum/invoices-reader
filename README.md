@@ -61,7 +61,7 @@ $ python main.py
 1. Select a folder containing invoice images.
 2. Choose a location to save the extracted data as an Excel spreadsheet.
 3. Click the "Start" button to begin processing invoices.
-4. If QR code decoding fails for an invoice, the application will attempt to extract information using Gemini AI.
+4. If QR code decoding fails for an invoice, press ai extract to extract information using Gemini AI.
 5. Once processing is complete, the extracted data will be saved to the specified Excel file.
 
 ## Contributions
