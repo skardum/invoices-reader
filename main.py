@@ -27,15 +27,28 @@ os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
-
-
 def process_text_and_fill_ui(image_data):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
-        response = model.generate_content([
-            "Extract from this invoice Name of vendor, vendor VAT id, Date, Total Amount, and VAT Amount , and format the extracted information as a dictionary with keys: vendor_name vendor_vat_id date invoice_total and vat_amount and dont give me any instructions or text just the dictionary only also dont give me dum data.",
-            image_data
-        ])
+        response = model.generate_content(['''Extract the following fields from this invoice and format the information as a dictionary:
+                                           - Vendor Name
+                                           - Vendor VAT ID
+                                           - Date
+                                           - Total Amount
+                                           - VAT Amount
+                                           - invoice number
+
+                                           Please provide the extracted information in the format:
+                                           {
+                                               'vendor_name': '...',
+                                               'vendor_vat_id': '...',
+                                               'date': '...',
+                                               'invoice_total': '...',
+                                               'vat_amount': '...',
+                                               'invoice_number': '...'
+                                           }''',
+                                           image_data
+                                           ])
 
         print(response.text)
         pattern = r'{.*?}'
@@ -65,6 +78,8 @@ def update_ui_with_data(ui, data):
     # Convert float to string before setting the text
     vat_amount = str(data.get('vat_amount', ''))
     ui.vatamount_lineedit.setText(vat_amount)
+    invoice_number = str(data.get('invoice_number', ''))
+    ui.invoicenumber_lineedit.setText(invoice_number)
 
 
 # Define the dark theme stylesheet
@@ -136,18 +151,24 @@ class AiExtractor(QtCore.QObject):
             # Read the image file
             with open(self.image_path, 'rb') as file:
                 image_data = PIL.Image.open(file)
-                self.progress_changed.emit(25, "Image loaded")  # Emit progress update
+                self.progress_changed.emit(
+                    25, "Image loaded")  # Emit progress update
                 parsed_data = process_text_and_fill_ui(image_data)
                 if parsed_data:
-                    self.progress_changed.emit(50, "Data extracted")  # Emit progress update
+                    self.progress_changed.emit(
+                        50, "Data extracted")  # Emit progress update
                     update_ui_with_data(self.ui, parsed_data)
-                    self.progress_changed.emit(100, "Extraction complete")  # Emit progress update
+                    self.progress_changed.emit(
+                        100, "Extraction complete")  # Emit progress update
                 else:
-                    self.progress_changed.emit(0, "No data extracted")  # Emit progress update
+                    self.progress_changed.emit(
+                        0, "No data extracted")  # Emit progress update
         except FileNotFoundError:
-            self.progress_changed.emit(0, "File not found")  # Emit progress update
+            self.progress_changed.emit(
+                0, "File not found")  # Emit progress update
         except Exception as e:
-            self.progress_changed.emit(0, f"Error: {str(e)}")  # Emit progress update
+            self.progress_changed.emit(
+                0, f"Error: {str(e)}")  # Emit progress update
 
 
 def remove_non_printable(text):
@@ -236,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Start the thread
         self.ai_thread.start()
-    
+
     def show_progress_dialog(self):
         # Show progress dialog when processing starts
         self.progress_dialog = ProgressDialog()
@@ -276,7 +297,7 @@ class MainWindow(QtWidgets.QMainWindow):
             image_path = image_path.replace("\\", "/")
 
             print("Attempting to load image from:",
-                image_path)  # Debug statement
+                  image_path)  # Debug statement
 
             vendor_name = self.sheet.cell(row=row, column=2).value
             vat_id = self.sheet.cell(row=row, column=3).value
@@ -289,17 +310,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 pixmap = QtGui.QPixmap(image_path)
                 if not pixmap.isNull():
                     # Scale pixmap to fit the QGraphicsView
-                    scaled_pixmap = pixmap.scaled(self.graphicsView.size(), QtCore.Qt.KeepAspectRatio)
+                    scaled_pixmap = pixmap.scaled(
+                        self.graphicsView.size(), QtCore.Qt.KeepAspectRatio)
                     scene = QtWidgets.QGraphicsScene()
                     pixmap_item = QtWidgets.QGraphicsPixmapItem(scaled_pixmap)
                     scene.addItem(pixmap_item)
                     self.graphicsView.setScene(scene)
                 else:
                     print("Failed to load image at:",
-                        image_path)  # Debug statement
+                          image_path)  # Debug statement
             else:
                 print("Image does not exist at:",
-                    image_path)  # Debug statement
+                      image_path)  # Debug statement
 
             self.vendor_lineedit.setText(str(vendor_name))
             self.vatid_lineedit.setText(str(vat_id))
@@ -309,7 +331,6 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to load invoice data: {str(e)}')
-
 
     def load_next_invoice(self):
         if self.sheet is not None:
@@ -376,7 +397,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         sheet.append([file_path] + cleaned_invoice_data)
                     else:
                         sheet.append(
-                                [file_path, "qr not detected", 0, 0, 0, 0])
+                            [file_path, "qr not detected", 0, 0, 0, 0])
 
                     self.progressBar.setValue(sheet.max_row)
 

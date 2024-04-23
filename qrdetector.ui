@@ -59,7 +59,7 @@
      <string>ai extract</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>18</x>
@@ -69,28 +69,22 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLineEdit" name="vendor_lineedit"/>
+     <item row="4" column="0">
+      <widget class="QLineEdit" name="vatamount_lineedit"/>
      </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label">
+     <item row="4" column="1">
+      <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>اسم المورد</string>
+        <string>مبلغ الضريبة</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLineEdit" name="vatid_lineedit"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLabel" name="label_2">
+     <item row="3" column="1">
+      <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>الرقم الضريبي</string>
+        <string>مبلغ الفاتورة</string>
        </property>
       </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLineEdit" name="date_lineedit"/>
      </item>
      <item row="2" column="1">
       <widget class="QLabel" name="label_3">
@@ -102,26 +96,45 @@
      <item row="3" column="0">
       <widget class="QLineEdit" name="total_lineedit"/>
      </item>
-     <item row="3" column="1">
-      <widget class="QLabel" name="label_4">
+     <item row="6" column="0">
+      <widget class="QLineEdit" name="invoicenumber_lineedit"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="vendor_lineedit"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="date_lineedit"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label">
        <property name="text">
-        <string>مبلغ الفاتورة</string>
+        <string>اسم المورد</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLineEdit" name="vatamount_lineedit"/>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLabel" name="label_5">
+     <item row="1" column="1">
+      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>مبلغ الضريبة</string>
+        <string>الرقم الضريبي</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="vatid_lineedit"/>
+     </item>
+     <item row="6" column="1">
+      <widget class="QLabel" name="label_6">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="text">
+        <string>رقم الفاتورة</string>
        </property>
       </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>335</x>
@@ -164,7 +177,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>26</x>
