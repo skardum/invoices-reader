@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>210</y>
+      <y>310</y>
       <width>301</width>
       <height>25</height>
      </rect>
@@ -33,37 +33,11 @@
      <number>0</number>
     </property>
    </widget>
-   <widget class="QPushButton" name="save">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>500</y>
-      <width>101</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>save invoice</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="ai_button">
-    <property name="geometry">
-     <rect>
-      <x>190</x>
-      <y>500</y>
-      <width>101</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>ai extract</string>
-    </property>
-   </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>18</x>
-      <y>290</y>
+      <y>390</y>
       <width>291</width>
       <height>191</height>
      </rect>
@@ -181,7 +155,7 @@
     <property name="geometry">
      <rect>
       <x>26</x>
-      <y>10</y>
+      <y>110</y>
       <width>281</width>
       <height>181</height>
      </rect>
@@ -190,7 +164,7 @@
      <item row="0" column="0">
       <widget class="QPushButton" name="browseButton1">
        <property name="text">
-        <string>choose folder</string>
+        <string>Choose Folder</string>
        </property>
       </widget>
      </item>
@@ -207,7 +181,7 @@
      <item row="2" column="0">
       <widget class="QPushButton" name="browseButton3">
        <property name="text">
-        <string>save location</string>
+        <string>Save Location</string>
        </property>
       </widget>
      </item>
@@ -224,7 +198,46 @@
      <item row="4" column="0">
       <widget class="QPushButton" name="convertButton">
        <property name="text">
-        <string>start</string>
+        <string>Start Qr Reading</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="previous_extractions">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>79</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>History</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>600</y>
+      <width>291</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_4">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="save">
+       <property name="text">
+        <string>Save Edits</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="ai_button">
+       <property name="text">
+        <string>Extract Invoice With AI</string>
        </property>
       </widget>
      </item>

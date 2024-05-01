@@ -1,23 +1,23 @@
-# Import necessary modules
 import sys
 import os
 import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
 import openpyxl
+import re
+from dotenv import load_dotenv
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QGraphicsView, QWidget, QDialog, QMessageBox, QFileDialog, QGraphicsScene, QGraphicsPixmapItem
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal, Qt, QObject, QThread
+from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.uic import loadUi
 from threading import Thread
 import PIL.Image
 
-# PyQt5 imports
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QDialog
-from PyQt5.uic import loadUi
-from PyQt5.QtCore import pyqtSignal
-
-# Add the AI functionality from invoice_ocr_gemini_pro.py
-import re
-from dotenv import load_dotenv
+# Import database functions and classes
+from database import *
 import google.generativeai as genai
+
 
 # Load environment variables
 load_dotenv()
@@ -41,10 +41,10 @@ def process_text_and_fill_ui(image_data):
                                            Please provide the extracted information in the format:
                                            {
                                                'vendor_name': '...',
-                                               'vendor_vat_id': '...',
+                                               'vat_id': '...',
                                                'date': '...',
                                                'invoice_total': '...',
-                                               'vat_amount': '...',
+                                               'vat_total': '...',
                                                'invoice_number': '...'
                                            }''',
                                            image_data
@@ -68,7 +68,7 @@ def process_text_and_fill_ui(image_data):
 
 def update_ui_with_data(ui, data):
     ui.vendor_lineedit.setText(data.get('vendor_name', ''))
-    ui.vatid_lineedit.setText(data.get('vendor_vat_id', ''))
+    ui.vatid_lineedit.setText(data.get('vat_id', ''))
     ui.date_lineedit.setText(data.get('date', ''))
 
     # Convert float to string before setting the text
@@ -76,13 +76,12 @@ def update_ui_with_data(ui, data):
     ui.total_lineedit.setText(invoice_total)
 
     # Convert float to string before setting the text
-    vat_amount = str(data.get('vat_amount', ''))
-    ui.vatamount_lineedit.setText(vat_amount)
+    vat_total = str(data.get('vat_total', ''))
+    ui.vatamount_lineedit.setText(vat_total)
     invoice_number = str(data.get('invoice_number', ''))
     ui.invoicenumber_lineedit.setText(invoice_number)
 
 
-# Define the dark theme stylesheet
 dark_theme_stylesheet = """
 QWidget {
     background-color: #333;
@@ -135,14 +134,16 @@ class ProgressDialog(QDialog):
         self.progressBar.setRange(0, 0)  # Indeterminate progress bar
 
 
-class AiExtractor(QtCore.QObject):
+class AiExtractor(QObject):
     progress_changed = pyqtSignal(int, str)  # Signal for progress updates
     started = pyqtSignal()  # Signal for indicating start of processing
+    data_extracted = pyqtSignal(dict, str)  # Signal to emit extracted data and image path
 
-    def __init__(self, image_path, ui, parent=None):
+    def __init__(self, image_path, ui, db_connection, parent=None):
         super(AiExtractor, self).__init__(parent)
-        self.image_path = image_path
+        self.image_path = image_path  # Set image_path
         self.ui = ui
+        self.db_connection = db_connection
 
     def extract(self):
         self.started.emit()  # Emit signal indicating start of processing
@@ -158,6 +159,8 @@ class AiExtractor(QtCore.QObject):
                     self.progress_changed.emit(
                         50, "Data extracted")  # Emit progress update
                     update_ui_with_data(self.ui, parsed_data)
+                    # Save data to database
+                    self.data_extracted.emit(parsed_data, self.image_path)  # Emit signal with extracted data and image path
                     self.progress_changed.emit(
                         100, "Extraction complete")  # Emit progress update
                 else:
@@ -169,6 +172,7 @@ class AiExtractor(QtCore.QObject):
         except Exception as e:
             self.progress_changed.emit(
                 0, f"Error: {str(e)}")  # Emit progress update
+
 
 
 def remove_non_printable(text):
@@ -210,7 +214,7 @@ def decode_qr_code(image):
     return None, threshold
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi('qrdetector.ui', self)  # Load the UI file
@@ -225,14 +229,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.next.clicked.connect(self.load_next_invoice)
         self.previous.clicked.connect(self.load_previous_invoice)
         self.first.clicked.connect(self.load_first_invoice)
+        self.previous_extractions.clicked.connect(self.show_database_form)
         self.current_row = 2  # Start from row 2 to skip header
-        # Apply dark theme stylesheet
         self.setStyleSheet(dark_theme_stylesheet)
+
         # Connect the AI extract button to the new model
         self.ai_button.clicked.connect(self.ai_extract)
 
         # Initialize progress dialog
         self.progress_dialog = None
+
+        # Connect to the database
+        self.db_connection = connect_to_database()
+        self.image_path=None
+
+    def show_database_form(self):
+        database_dialog = DatabaseDialog()
+        database_dialog.exec()
 
     def ai_extract(self):
         # Get the currently displayed pixmap from the graphics view
@@ -246,7 +259,7 @@ class MainWindow(QtWidgets.QMainWindow):
         image.save(image_path)
 
         # Create an instance of AiExtractor and move it to a separate thread
-        self.ai_extractor = AiExtractor(image_path, self)
+        self.ai_extractor = AiExtractor(image_path, self, self.db_connection)
         self.ai_thread = QtCore.QThread()
         self.ai_extractor.moveToThread(self.ai_thread)
 
@@ -297,37 +310,40 @@ class MainWindow(QtWidgets.QMainWindow):
             image_path = image_path.replace("\\", "/")
 
             print("Attempting to load image from:",
-                  image_path)  # Debug statement
+                image_path)  # Debug statement
 
             vendor_name = self.sheet.cell(row=row, column=2).value
             vat_id = self.sheet.cell(row=row, column=3).value
             date = self.sheet.cell(row=row, column=4).value
-            total_amount = self.sheet.cell(row=row, column=5).value
-            vat_amount = self.sheet.cell(row=row, column=6).value
+            invoice_total = self.sheet.cell(row=row, column=5).value
+            vat_total = self.sheet.cell(row=row, column=6).value
+
+            # Set self.image_path
+            self.image_path = image_path
 
             if os.path.exists(image_path):
                 print("Image exists at:", image_path)  # Debug statement
-                pixmap = QtGui.QPixmap(image_path)
+                pixmap = QPixmap(image_path)
                 if not pixmap.isNull():
                     # Scale pixmap to fit the QGraphicsView
                     scaled_pixmap = pixmap.scaled(
-                        self.graphicsView.size(), QtCore.Qt.KeepAspectRatio)
-                    scene = QtWidgets.QGraphicsScene()
-                    pixmap_item = QtWidgets.QGraphicsPixmapItem(scaled_pixmap)
+                        self.graphicsView.size(), Qt.AspectRatioMode.KeepAspectRatio)
+                    scene = QGraphicsScene()
+                    pixmap_item = QGraphicsPixmapItem(scaled_pixmap)
                     scene.addItem(pixmap_item)
                     self.graphicsView.setScene(scene)
                 else:
                     print("Failed to load image at:",
-                          image_path)  # Debug statement
+                        image_path)  # Debug statement
             else:
                 print("Image does not exist at:",
-                      image_path)  # Debug statement
+                    image_path)  # Debug statement
 
             self.vendor_lineedit.setText(str(vendor_name))
             self.vatid_lineedit.setText(str(vat_id))
             self.date_lineedit.setText(str(date))
-            self.total_lineedit.setText(str(total_amount))
-            self.vatamount_lineedit.setText(str(vat_amount))
+            self.total_lineedit.setText(str(invoice_total))
+            self.vatamount_lineedit.setText(str(vat_total))
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to load invoice data: {str(e)}')
@@ -426,27 +442,42 @@ class MainWindow(QtWidgets.QMainWindow):
             row = self.current_row
 
             vendor_name = self.vendor_lineedit.text()
-            vat_id = self.vatid_lineedit.text()
+            vat_id = self.vatid_lineedit.text()  # Corrected variable name
             date = self.date_lineedit.text()
-            total_amount = self.total_lineedit.text()
-            vat_amount = self.vatamount_lineedit.text()
+            invoice_total = self.total_lineedit.text()
+            vat_total = self.vatamount_lineedit.text()
+            invoice_number = self.invoicenumber_lineedit.text()
 
             sheet.cell(row=row, column=2, value=vendor_name)
-            sheet.cell(row=row, column=3, value=vat_id)
+            sheet.cell(row=row, column=3, value=vat_id)  # Corrected argument name
             sheet.cell(row=row, column=4, value=date)
-            sheet.cell(row=row, column=5, value=total_amount)
-            sheet.cell(row=row, column=6, value=vat_amount)
+            sheet.cell(row=row, column=5, value=invoice_total)
+            sheet.cell(row=row, column=6, value=vat_total)
+            sheet.cell(row=row, column=7, value=invoice_number)
 
             workbook.save(self.location)
             QMessageBox.information(
                 self, 'Information', 'Invoice saved successfully!')
+
+            # Update data in the database after saving
+            updated_data = {
+                'vendor_name': vendor_name,
+                'vat_id': vat_id,  # Corrected argument name
+                'date': date,
+                'invoice_total': invoice_total,
+                'vat_total': vat_total,
+                'invoice_number': invoice_number
+            }
+
+            update_extracted_data(self.db_connection, row, self.image_path, vendor_name,date, vat_id, invoice_total, vat_total, invoice_number)
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to save invoice: {str(e)}')
+
 
 
 if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
