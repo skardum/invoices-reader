@@ -1,0 +1,297 @@
+DEBUG:PyQt6.uic.uiparser:toplevel widget is MainWindow
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property windowTitle
+DEBUG:PyQt6.uic.uiparser:push MainWindow MainWindow
+DEBUG:PyQt6.uic.uiparser:push QWidget centralwidget
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property layoutDirection
+DEBUG:PyQt6.uic.properties:setting property autoFillBackground
+DEBUG:PyQt6.uic.properties:setting property value
+DEBUG:PyQt6.uic.uiparser:push QProgressBar progressBar
+DEBUG:PyQt6.uic.uiparser:pop widget QProgressBar progressBar
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vatamount_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vatamount_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_5
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_5
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_4
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_4
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_3
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_3
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit total_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit total_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit invoicenumber_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit invoicenumber_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vendor_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vendor_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit date_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit date_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_2
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_2
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vatid_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vatid_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.properties:setting property frameShape
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_6
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_6
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985C940>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget1
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_2
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton first
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton first
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D120>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton previous
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton previous
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D120>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton next
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton next
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D120>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton last
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton last
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D120>
+DEBUG:PyQt6.uic.uiparser:push QGraphicsView graphicsView
+DEBUG:PyQt6.uic.uiparser:pop widget QGraphicsView graphicsView
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D120>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_2
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget1
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget2
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_3
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton browseButton1
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton browseButton1
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D510>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.properties:setting property alignment
+DEBUG:PyQt6.uic.uiparser:push QLabel folder_path_label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel folder_path_label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D510>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton browseButton3
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton browseButton3
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D510>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.properties:setting property alignment
+DEBUG:PyQt6.uic.uiparser:push QLabel location_label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel location_label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D510>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton convertButton
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton convertButton
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D510>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_3
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget2
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton previous_extractions
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton previous_extractions
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget widget
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_4
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton save
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton save
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D990>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton ai_button
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton ai_button
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E9985D990>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_4
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget widget
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x0000021E99833E20>
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget centralwidget
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x0000021E99833D90>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QMenuBar menubar
+DEBUG:PyQt6.uic.uiparser:pop widget QMenuBar menubar
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x0000021E99833D90>
+DEBUG:PyQt6.uic.uiparser:push QStatusBar statusbar
+DEBUG:PyQt6.uic.uiparser:pop widget QStatusBar statusbar
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x0000021E99833D90>
+DEBUG:PyQt6.uic.uiparser:pop widget MainWindow MainWindow
+DEBUG:PyQt6.uic.uiparser:new topwidget None
+DEBUG:PyQt6.uic.uiparser:toplevel widget is MainWindow
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property windowTitle
+DEBUG:PyQt6.uic.uiparser:push MainWindow MainWindow
+DEBUG:PyQt6.uic.uiparser:push QWidget centralwidget
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property layoutDirection
+DEBUG:PyQt6.uic.properties:setting property autoFillBackground
+DEBUG:PyQt6.uic.properties:setting property value
+DEBUG:PyQt6.uic.uiparser:push QProgressBar progressBar
+DEBUG:PyQt6.uic.uiparser:pop widget QProgressBar progressBar
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vatamount_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vatamount_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_5
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_5
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_4
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_4
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_3
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_3
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit total_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit total_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit invoicenumber_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit invoicenumber_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vendor_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vendor_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit date_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit date_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_2
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_2
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:push QLineEdit vatid_lineedit
+DEBUG:PyQt6.uic.uiparser:pop widget QLineEdit vatid_lineedit
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.properties:setting property frameShape
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QLabel label_6
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel label_6
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA754A60>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget1
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_2
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton first
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton first
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755240>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton previous
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton previous
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755240>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton next
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton next
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755240>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton last
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton last
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755240>
+DEBUG:PyQt6.uic.uiparser:push QGraphicsView graphicsView
+DEBUG:PyQt6.uic.uiparser:pop widget QGraphicsView graphicsView
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755240>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_2
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget1
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget layoutWidget2
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_3
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton browseButton1
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton browseButton1
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755630>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.properties:setting property alignment
+DEBUG:PyQt6.uic.uiparser:push QLabel folder_path_label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel folder_path_label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755630>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton browseButton3
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton browseButton3
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755630>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.properties:setting property alignment
+DEBUG:PyQt6.uic.uiparser:push QLabel location_label
+DEBUG:PyQt6.uic.uiparser:pop widget QLabel location_label
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755630>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton convertButton
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton convertButton
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755630>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_3
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget layoutWidget2
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton previous_extractions
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton previous_extractions
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QWidget widget
+DEBUG:PyQt6.uic.properties:setting property pyuicMargins
+DEBUG:PyQt6.uic.uiparser:push QGridLayout gridLayout_4
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton save
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton save
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755AB0>
+DEBUG:PyQt6.uic.properties:setting property text
+DEBUG:PyQt6.uic.uiparser:push QPushButton ai_button
+DEBUG:PyQt6.uic.uiparser:pop widget QPushButton ai_button
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA755AB0>
+DEBUG:PyQt6.uic.uiparser:pop layout QGridLayout gridLayout_4
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget widget
+DEBUG:PyQt6.uic.uiparser:new topwidget <PyQt6.QtWidgets.QWidget object at 0x00000151EA733F40>
+DEBUG:PyQt6.uic.uiparser:pop widget QWidget centralwidget
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x00000151EA733EB0>
+DEBUG:PyQt6.uic.properties:setting property geometry
+DEBUG:PyQt6.uic.uiparser:push QMenuBar menubar
+DEBUG:PyQt6.uic.uiparser:pop widget QMenuBar menubar
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x00000151EA733EB0>
+DEBUG:PyQt6.uic.uiparser:push QStatusBar statusbar
+DEBUG:PyQt6.uic.uiparser:pop widget QStatusBar statusbar
+DEBUG:PyQt6.uic.uiparser:new topwidget <__main__.MainWindow object at 0x00000151EA733EB0>
+DEBUG:PyQt6.uic.uiparser:pop widget MainWindow MainWindow
+DEBUG:PyQt6.uic.uiparser:new topwidget None
+INFO:root:Connected to database successfully.

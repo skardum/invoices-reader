@@ -415,8 +415,8 @@ class MainWindow(QMainWindow):
                             char for char in item if char.isprintable()) for item in invoice_data]
                         sheet.append([file_path] + cleaned_invoice_data)
                         # Add extracted data to the list
-                        extracted_data.append(
-                            [file_path] + cleaned_invoice_data)
+                        # Only append cleaned data
+                        extracted_data.append(cleaned_invoice_data)
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0])
