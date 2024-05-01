@@ -137,7 +137,8 @@ class ProgressDialog(QDialog):
 class AiExtractor(QObject):
     progress_changed = pyqtSignal(int, str)  # Signal for progress updates
     started = pyqtSignal()  # Signal for indicating start of processing
-    data_extracted = pyqtSignal(dict, str)  # Signal to emit extracted data and image path
+    # Signal to emit extracted data and image path
+    data_extracted = pyqtSignal(dict, str)
 
     def __init__(self, image_path, ui, db_connection, parent=None):
         super(AiExtractor, self).__init__(parent)
@@ -160,7 +161,8 @@ class AiExtractor(QObject):
                         50, "Data extracted")  # Emit progress update
                     update_ui_with_data(self.ui, parsed_data)
                     # Save data to database
-                    self.data_extracted.emit(parsed_data, self.image_path)  # Emit signal with extracted data and image path
+                    # Emit signal with extracted data and image path
+                    self.data_extracted.emit(parsed_data, self.image_path)
                     self.progress_changed.emit(
                         100, "Extraction complete")  # Emit progress update
                 else:
@@ -172,7 +174,6 @@ class AiExtractor(QObject):
         except Exception as e:
             self.progress_changed.emit(
                 0, f"Error: {str(e)}")  # Emit progress update
-
 
 
 def remove_non_printable(text):
@@ -241,7 +242,7 @@ class MainWindow(QMainWindow):
 
         # Connect to the database
         self.db_connection = connect_to_database()
-        self.image_path=None
+        self.image_path = None
 
     def show_database_form(self):
         database_dialog = DatabaseDialog()
@@ -310,7 +311,7 @@ class MainWindow(QMainWindow):
             image_path = image_path.replace("\\", "/")
 
             print("Attempting to load image from:",
-                image_path)  # Debug statement
+                  image_path)  # Debug statement
 
             vendor_name = self.sheet.cell(row=row, column=2).value
             vat_id = self.sheet.cell(row=row, column=3).value
@@ -334,10 +335,10 @@ class MainWindow(QMainWindow):
                     self.graphicsView.setScene(scene)
                 else:
                     print("Failed to load image at:",
-                        image_path)  # Debug statement
+                          image_path)  # Debug statement
             else:
                 print("Image does not exist at:",
-                    image_path)  # Debug statement
+                      image_path)  # Debug statement
 
             self.vendor_lineedit.setText(str(vendor_name))
             self.vatid_lineedit.setText(str(vat_id))
@@ -399,6 +400,8 @@ class MainWindow(QMainWindow):
             num_files = len(os.listdir(folder_path))
             self.progressBar.setMaximum(num_files)
 
+            extracted_data = []  # List to store extracted data from all images
+
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
                 if os.path.isfile(file_path):
@@ -411,6 +414,9 @@ class MainWindow(QMainWindow):
                         cleaned_invoice_data = ["".join(
                             char for char in item if char.isprintable()) for item in invoice_data]
                         sheet.append([file_path] + cleaned_invoice_data)
+                        # Add extracted data to the list
+                        extracted_data.append(
+                            [file_path] + cleaned_invoice_data)
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0])
@@ -420,6 +426,16 @@ class MainWindow(QMainWindow):
             workbook.save(location)
             QMessageBox.information(
                 self, 'Information', 'Invoices read successful!')
+
+            # Save extracted data to the database
+            detection_id = save_detection_to_database(
+                self.db_connection, num_files, extracted_data)
+            if detection_id is not None:
+                QMessageBox.information(
+                    self, 'Information', 'Extracted data saved to the database successfully!')
+            else:
+                QMessageBox.warning(
+                    self, 'Warning', 'Failed to save extracted data to the database.')
 
             # Automatically load the first invoice after saving
             self.current_row = 2
@@ -442,14 +458,14 @@ class MainWindow(QMainWindow):
             row = self.current_row
 
             vendor_name = self.vendor_lineedit.text()
-            vat_id = self.vatid_lineedit.text()  # Corrected variable name
+            vat_id = self.vatid_lineedit.text()
             date = self.date_lineedit.text()
             invoice_total = self.total_lineedit.text()
             vat_total = self.vatamount_lineedit.text()
             invoice_number = self.invoicenumber_lineedit.text()
 
             sheet.cell(row=row, column=2, value=vendor_name)
-            sheet.cell(row=row, column=3, value=vat_id)  # Corrected argument name
+            sheet.cell(row=row, column=3, value=vat_id)
             sheet.cell(row=row, column=4, value=date)
             sheet.cell(row=row, column=5, value=invoice_total)
             sheet.cell(row=row, column=6, value=vat_total)
@@ -460,20 +476,11 @@ class MainWindow(QMainWindow):
                 self, 'Information', 'Invoice saved successfully!')
 
             # Update data in the database after saving
-            updated_data = {
-                'vendor_name': vendor_name,
-                'vat_id': vat_id,  # Corrected argument name
-                'date': date,
-                'invoice_total': invoice_total,
-                'vat_total': vat_total,
-                'invoice_number': invoice_number
-            }
-
-            update_extracted_data(self.db_connection, row, self.image_path, vendor_name,date, vat_id, invoice_total, vat_total, invoice_number)
+            update_extracted_data(self.db_connection, row, self.image_path,
+                                  vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to save invoice: {str(e)}')
-
 
 
 if __name__ == '__main__':

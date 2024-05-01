@@ -4,47 +4,63 @@ from PyQt6.QtWidgets import QApplication, QDialog, QTableWidgetItem, QMessageBox
 from PyQt6.uic import loadUi
 from datetime import datetime
 import xlsxwriter
+import logging
+
+# Set up logging
+logging.basicConfig(filename='app.log', level=logging.DEBUG)
 
 
-def connect_to_database():
-    connection = sqlite3.connect("detections.db")
-    return connection
+class DatabaseManager:
+    def __init__(self):
+        self.connection = None
+        self.cursor = None
 
+    def connect(self, db_file):
+        try:
+            self.connection = sqlite3.connect(db_file)
+            self.cursor = self.connection.cursor()
+            logging.info("Connected to database successfully.")
+        except sqlite3.Error as e:
+            logging.error("Error connecting to database: %s" % e)
 
-def save_detection_to_database(connection, num_invoices, extracted_data):
-    cursor = connection.cursor()
-    try:
-        # Insert data into main_records table
-        cursor.execute("""
-            INSERT INTO main_records (detection_date, num_invoices)
-            VALUES (?, ?)
-        """, (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), num_invoices))
-        detection_id = cursor.lastrowid  # Get the last inserted detection ID
+    def disconnect(self):
+        if self.connection:
+            self.connection.close()
+            logging.info("Disconnected from database.")
 
-        # Insert extracted data into extracted_data table
-        for data in extracted_data:
-            cursor.execute("""
-                INSERT INTO extracted_data (id, image_file, vendor_name, vat_id, invoice_total, vat_total, invoice_number)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (detection_id, *data))
+    def execute_query(self, query, params=None):
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            self.connection.commit()
+            return True
+        except sqlite3.Error as e:
+            logging.error("Error executing query: %s" % e)
+            return False
 
-        connection.commit()
-        return detection_id
-    except Exception as e:
-        print(f'Failed to save detection to database: {str(e)}')
-        return None
+    def fetch_all(self, query, params=None):
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            logging.error("Error fetching data: %s" % e)
+            return None
 
-
-def update_extracted_data(connection, detection_id, image_file, vendor_name,date, vat_id, invoice_total, vat_total, invoice_number):
-    cursor = connection.cursor()
-    try:
-        cursor.execute("""
-            INSERT INTO extracted_data (id, image_file, vendor_name,date, vat_id, invoice_total, vat_total, invoice_number)
-            VALUES (?, ?,?, ?, ?, ?, ?,?)
-        """, (detection_id, image_file, vendor_name,date, vat_id, invoice_total, vat_total, invoice_number))
-        connection.commit()
-    except Exception as e:
-        print(f'Failed to update extracted data in database: {str(e)}')
+    def fetch_one(self, query, params=None):
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            return self.cursor.fetchone()
+        except sqlite3.Error as e:
+            logging.error("Error fetching data: %s" % e)
+            return None
 
 
 class DatabaseDialog(QDialog):
@@ -52,8 +68,8 @@ class DatabaseDialog(QDialog):
         super().__init__()
         loadUi('db.ui', self)  # Load the UI file
         self.setWindowTitle("Database Viewer")
-        self.connection = connect_to_database()  # Use the function directly
-        self.cursor = self.connection.cursor()
+        self.db_manager = DatabaseManager()
+        self.db_manager.connect("detections.db")  # Use the function directly
         self.setup_ui()
         self.create_tables()
         self.load_main_records()
@@ -68,18 +84,19 @@ class DatabaseDialog(QDialog):
 
     def create_tables(self):
         try:
-            self.cursor.execute("""
+            self.db_manager.execute_query("""
                 CREATE TABLE IF NOT EXISTS main_records (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     detection_date TEXT,
                     num_invoices INTEGER
                 )
             """)
-            self.cursor.execute("""
+            self.db_manager.execute_query("""
                 CREATE TABLE IF NOT EXISTS extracted_data (
                     id INTEGER,
                     image_file TEXT,
                     vendor_name TEXT,
+                    date TEXT,
                     vat_id TEXT,
                     invoice_total REAL,
                     vat_total REAL,
@@ -87,23 +104,20 @@ class DatabaseDialog(QDialog):
                     FOREIGN KEY (id) REFERENCES main_records(id)
                 )
             """)
-            self.connection.commit()
-
-            
-        except Exception as e:
+        except sqlite3.Error as e:
             QMessageBox.critical(
                 self, 'Database Error', f'Failed to create tables: {str(e)}')
 
     def load_main_records(self):
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
-        self.cursor.execute("SELECT * FROM main_records")
-        main_records = self.cursor.fetchall()
-        for index, record in enumerate(main_records):
-            self.tableWidget.insertRow(index)
-            for col, value in enumerate(record):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(index, col, item)
+        main_records = self.db_manager.fetch_all("SELECT * FROM main_records")
+        if main_records:
+            for index, record in enumerate(main_records):
+                self.tableWidget.insertRow(index)
+                for col, value in enumerate(record):
+                    item = QTableWidgetItem(str(value))
+                    self.tableWidget.setItem(index, col, item)
 
     def export_to_excel(self):
         selected_row = self.tableWidget.currentRow()
@@ -117,18 +131,17 @@ class DatabaseDialog(QDialog):
                 try:
                     workbook = xlsxwriter.Workbook(file_path)
                     worksheet = workbook.add_worksheet()
-                    headers = ['ID', 'Image File', 'Vendor Name', 'VAT ID',
+                    headers = ['ID', 'Image File', 'Vendor Name', 'Date', 'VAT ID',
                                'Invoice Total', 'VAT Total', 'Invoice Number']
                     for col, header in enumerate(headers):
                         worksheet.write(0, col, header)
 
-                    self.cursor.execute(
+                    detected_data = self.db_manager.fetch_all(
                         "SELECT * FROM extracted_data WHERE id=?", (detection_id,))
-                    detected_data = self.cursor.fetchall()
-                    for row_num, record in enumerate(detected_data, start=1):
-                        for col_num, value in enumerate(record):
-                            # Write ID value in the first column
-                            worksheet.write(row_num, col_num, value)
+                    if detected_data:
+                        for row_num, record in enumerate(detected_data, start=1):
+                            for col_num, value in enumerate(record):
+                                worksheet.write(row_num, col_num, value)
 
                     workbook.close()
                     QMessageBox.information(
@@ -148,15 +161,14 @@ class DatabaseDialog(QDialog):
                 self, 'Confirmation', 'Are you sure you want to delete this detection?', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirm == QMessageBox.StandardButton.Yes:
                 try:
-                    self.cursor.execute(
+                    self.db_manager.execute_query(
                         "DELETE FROM main_records WHERE id=?", (detection_id,))
-                    self.cursor.execute(
+                    self.db_manager.execute_query(
                         "DELETE FROM extracted_data WHERE id=?", (detection_id,))
-                    self.connection.commit()
                     self.load_main_records()
                     QMessageBox.information(
                         self, 'Deletion Successful', 'Detection deleted successfully!')
-                except Exception as e:
+                except sqlite3.Error as e:
                     QMessageBox.warning(
                         self, 'Deletion Failed', f'Failed to delete detection: {str(e)}')
         else:
