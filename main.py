@@ -198,21 +198,76 @@ def remove_non_printable(text):
 
 
 def decode_qr_code(image):
+    # Convert image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    threshold = cv2.adaptiveThreshold(
-        blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 2)
-    qr_detections = pyzbar.decode(threshold)
 
-    for detection in qr_detections:
-        data = detection.data
+    # Define a list of parameter combinations to try for adaptive thresholding
+    adaptive_threshold_params = [
+        # Combination 1
+        (cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 2),
+        # Combination 2
+        (cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 2),
+        # Combination 3
+        (cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 25, 3),
+        # Combination 4
+        (cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 25, 3),
+        # Combination 5
+        (cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 35, 4),
+        # Combination 6
+        (cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 35, 4),
+        # Add more parameter combinations as needed
+    ]
+
+    # Define a list of additional preprocessing settings to try
+    preprocessing_settings = [
+        # Preprocessing 1: No additional preprocessing
+        lambda img: img,
+        # Preprocessing 2: Gaussian blur
+        lambda img: cv2.GaussianBlur(img, (5, 5), 0),
+        # Preprocessing 3: Median blur
+        lambda img: cv2.medianBlur(img, 5),
+        # Preprocessing 4: Bilateral filter
+        lambda img: cv2.bilateralFilter(img, 9, 75, 75),
+        # Preprocessing 5: Adaptive histogram equalization
+        lambda img: cv2.equalizeHist(img),
+        # Add more preprocessing settings as needed
+    ]
+
+    for preprocess_func in preprocessing_settings:
         try:
-            text = base64.b64decode(data).decode("utf-8")
-            return text, threshold
-        except:
-            return None, threshold
+            # Apply additional preprocessing
+            processed_img = preprocess_func(gray)
 
-    return None, threshold
+            for params in adaptive_threshold_params:
+                try:
+                    # Apply adaptive thresholding with current parameters
+                    threshold = cv2.adaptiveThreshold(
+                        processed_img, 255, *params)
+
+                    # Decode QR codes using PyZbar
+                    qr_detections = pyzbar.decode(threshold)
+
+                    for detection in qr_detections:
+                        data = detection.data
+                        try:
+                            # Attempt to decode QR code data
+                            text = base64.b64decode(data).decode("utf-8")
+                            return text, threshold
+                        except Exception as e:
+                            # Handle decoding errors
+                            print(f"Error decoding QR code data: {e}")
+                            continue
+                except Exception as e:
+                    # Handle thresholding errors
+                    print(f"Error applying adaptive thresholding: {e}")
+                    continue
+        except Exception as e:
+            # Handle preprocessing errors
+            print(f"Error applying preprocessing: {e}")
+            continue
+
+    # Return None if QR code is not detected
+    return None, None
 
 
 class MainWindow(QMainWindow):
