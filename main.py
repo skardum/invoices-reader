@@ -13,9 +13,8 @@ from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.uic import loadUi
 from threading import Thread
 import PIL.Image
-
-# Import database functions and classes
-from database import connect_to_database, save_detection_to_database, update_extracted_data, DatabaseDialog
+from datetime import datetime
+from database import connect_to_database, save_detection_to_database, DatabaseDialog, insert_extracted_data
 import google.generativeai as genai
 
 
@@ -199,9 +198,9 @@ def remove_non_printable(text):
     # إزالة الفواصل المكررة
     text = ','.join(text.split(","))
     cleaned_string = text.replace("\x01", ",").replace("\x02", ",").replace(
-        "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",").replace("\x1f", ",").replace("\x1a", ",")
+        "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",").replace("\x1f", ",").replace("\x1a", ",").replace("\x11", ",").replace("\x10", ",").replace("\x1c", ",")
     cleaned_string = cleaned_string.replace("\x0f", ",").replace(
-        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",").replace("\x0b", ",").replace("\x0c", ",")
+        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",").replace("\x0b", ",").replace("\x0c", ",").replace("\x1b", ",")
 
     # تقسيم النص المنظف إلى قائمة بناءً على الفواصل
     result = cleaned_string.split(",")
@@ -273,10 +272,19 @@ def decode_qr_code(image):
                             # Attempt to decode QR code data
                             text = base64.b64decode(data).decode("utf-8")
                             return text, threshold
-                        except Exception as e:
-                            # Handle decoding errors
-                            print(f"Error decoding QR code data: {e}")
-                            continue
+                        except UnicodeDecodeError:
+                            try:
+                                # محاولة فك التشفير باستخدام ISO-8859-1
+                                text = base64.b64decode(data).decode('iso-8859-1')
+                            except UnicodeDecodeError:
+                                try:
+                                    # محاولة فك التشفير باستخدام windows-1256
+                                    text = base64.b64decode(data).decode('windows-1256')
+
+                                except Exception as e:
+                                    # Handle decoding errors
+                                    print(f"Error decoding QR code data: {e}")
+                                    continue
                 except Exception as e:
                     # Handle thresholding errors
                     print(f"Error applying adaptive thresholding: {e}")
@@ -482,13 +490,13 @@ class MainWindow(QMainWindow):
 
             # إنشاء سجل في جدول main_records والحصول على detection_id
             detection_id = save_detection_to_database(
-                self.db_connection, num_files, None, None, None, None, None, None, None)
+                self.db_connection, num_files)
 
             if detection_id is None:
                 QMessageBox.warning(
                     self, 'Warning', 'Failed to create a detection record in the database.')
                 return
-
+            processed_files = 0
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
                 if os.path.isfile(file_path):
@@ -500,19 +508,22 @@ class MainWindow(QMainWindow):
                         invoice_data_dict['invoice_number'] = "0"  # تحديث هذا حسب الحاجة
 
                         # استخدام نفس detection_id لكل فاتورة
-                        save_detection_to_database(
+                        insert_extracted_data(
                             self.db_connection, num_files, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
                         sheet.append(
                             [invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['vat_id'], invoice_data_dict['date'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number']])
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0, 0])
-
-                    self.progressBar.setValue(sheet.max_row)
+                        insert_extracted_data(
+                            self.db_connection, num_files, file_path, "qr not detected", 0, 0, 0, 0, 0)
+                processed_files += 1
+                progress_percent = int((processed_files / num_files) * 100)
+                self.progressBar.setValue(progress_percent)  # Update the progress bar
 
             workbook.save(location)
             QMessageBox.information(
-                self, 'Information', 'Invoices read successful!')
+                self, 'Information', 'All invoices processed successfully!')
 
             # Automatically load the first invoice after saving
             self.current_row = 2
