@@ -11,7 +11,7 @@ def connect_to_database():
     return connection
 
 
-def save_detection_to_database(connection, num_invoices, invoice_data_dict):
+def save_detection_to_database(connection, num_invoices, image_path=None, vendor_name=None, date=None, vat_id=None, invoice_total=None, vat_total=None, invoice_number=None):
     cursor = connection.cursor()
     try:
         # Insert data into main_records table
@@ -21,11 +21,12 @@ def save_detection_to_database(connection, num_invoices, invoice_data_dict):
         """, (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), num_invoices))
         detection_id = cursor.lastrowid  # Get the last inserted detection ID
 
-        # Insert extracted data into extracted_data table
-        cursor.execute("""
-            INSERT INTO extracted_data (id, image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (detection_id, invoice_data_dict["image_path"], invoice_data_dict["vendor_name"], invoice_data_dict["date"], invoice_data_dict["vat_id"], invoice_data_dict["invoice_total"], invoice_data_dict["vat_total"], invoice_data_dict["invoice_number"]))
+        # Only insert into extracted_data if all details are available
+        if all([image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number]):
+            cursor.execute("""
+                INSERT INTO extracted_data (id, image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (detection_id, image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number))
 
         connection.commit()
         return detection_id

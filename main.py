@@ -473,8 +473,16 @@ class MainWindow(QMainWindow):
                           "VAT Number", "Date and Time", "Total Amount", "VAT Amount", "Invoice Number"])
 
             num_files = len(os.listdir(folder_path))
-            invoice_number = "0"
             self.progressBar.setMaximum(num_files)
+
+            # Create a record in the main_records table and get detection_id
+            detection_id = save_detection_to_database(
+                self.db_connection, num_files, None, None, None, None, None, None, None)
+
+            if detection_id is None:
+                QMessageBox.warning(
+                    self, 'Warning', 'Failed to create a detection record in the database.')
+                return
 
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
@@ -482,14 +490,14 @@ class MainWindow(QMainWindow):
                     image = cv2.imread(file_path)
                     invoice_data, threshold = decode_qr_code(image)
                     if invoice_data:
-                        # Clean the invoice data using the remove_non_printable function
                         invoice_data_dict = remove_non_printable(invoice_data)
-                        # Append the dictionary directly to the Excel sheet
-                        sheet.append(
-                            [file_path] + list(invoice_data_dict.values()) + [invoice_number])
-                        # Add extracted data to the list
-                        invoice_data_dict.update(
-                            {"image_path": file_path, "invoice_number": invoice_number})
+                        invoice_data_dict['image_path'] = file_path
+                        invoice_data_dict['invoice_number'] = "0"  # Update as needed
+
+                        # Use the same detection_id for each invoice
+                        save_detection_to_database(
+                            self.db_connection, num_files, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
+
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0, 0])
@@ -499,16 +507,6 @@ class MainWindow(QMainWindow):
             workbook.save(location)
             QMessageBox.information(
                 self, 'Information', 'Invoices read successful!')
-
-            # Save extracted data to the database
-            detection_id = save_detection_to_database(
-                self.db_connection, num_files, invoice_data_dict)
-            if detection_id is not None:
-                QMessageBox.information(
-                    self, 'Information', 'Extracted data saved to the database successfully!')
-            else:
-                QMessageBox.warning(
-                    self, 'Warning', 'Failed to save extracted data to the database.')
 
             # Automatically load the first invoice after saving
             self.current_row = 2
