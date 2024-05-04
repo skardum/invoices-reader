@@ -382,17 +382,21 @@ class MainWindow(QMainWindow):
                 return
 
             image_path = self.sheet.cell(row=row, column=1).value
-            # Standardize the path format by replacing backslashes with forward slashes
-            image_path = image_path.replace("\\", "/")
+            # تأكد من أن image_path ليست None قبل استخدام replace
+            if image_path is not None:
+                image_path = image_path.replace("\\", "/")  # Standardize the path format
+            else:
+                QMessageBox.warning(self, 'Error', 'Image path is missing!')
+                return
 
-            print("Attempting to load image from:",
-                  image_path)  # Debug statement
+            print("Attempting to load image from:", image_path)  # Debug statement
 
             vendor_name = self.sheet.cell(row=row, column=2).value
             vat_id = self.sheet.cell(row=row, column=3).value
             date = self.sheet.cell(row=row, column=4).value
             invoice_total = self.sheet.cell(row=row, column=5).value
             vat_total = self.sheet.cell(row=row, column=6).value
+            invoice_number = self.sheet.cell(row=row, column=7).value
 
             # Set self.image_path
             self.image_path = image_path
@@ -420,6 +424,7 @@ class MainWindow(QMainWindow):
             self.date_lineedit.setText(str(date))
             self.total_lineedit.setText(str(invoice_total))
             self.vatamount_lineedit.setText(str(vat_total))
+            self.invoicenumber_lineedit.setText(str(invoice_number))
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Failed to load invoice data: {str(e)}')
@@ -475,7 +480,7 @@ class MainWindow(QMainWindow):
             num_files = len(os.listdir(folder_path))
             self.progressBar.setMaximum(num_files)
 
-            # Create a record in the main_records table and get detection_id
+            # إنشاء سجل في جدول main_records والحصول على detection_id
             detection_id = save_detection_to_database(
                 self.db_connection, num_files, None, None, None, None, None, None, None)
 
@@ -492,12 +497,13 @@ class MainWindow(QMainWindow):
                     if invoice_data:
                         invoice_data_dict = remove_non_printable(invoice_data)
                         invoice_data_dict['image_path'] = file_path
-                        invoice_data_dict['invoice_number'] = "0"  # Update as needed
+                        invoice_data_dict['invoice_number'] = "0"  # تحديث هذا حسب الحاجة
 
-                        # Use the same detection_id for each invoice
+                        # استخدام نفس detection_id لكل فاتورة
                         save_detection_to_database(
                             self.db_connection, num_files, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
-
+                        sheet.append(
+                            [invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['vat_id'], invoice_data_dict['date'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number']])
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0, 0])
