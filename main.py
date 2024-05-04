@@ -15,7 +15,7 @@ from threading import Thread
 import PIL.Image
 
 # Import database functions and classes
-from database import *
+from database import connect_to_database, save_detection_to_database, update_extracted_data, DatabaseDialog
 import google.generativeai as genai
 
 
@@ -177,24 +177,44 @@ class AiExtractor(QObject):
 
 
 def remove_non_printable(text):
-    # Replace "☺,☻,♥,♦,♠,♣,§,¶" with ","
+    """
+    تنظف النص المعطى بإزالة الأحرف غير القابلة للطباعة وبعض الأحرف الخاصة،
+    وتستبدلها بفواصل، ثم تزيل الفواصل المكررة وتقسم النص إلى قائمة بناءً على الفواصل.
+
+    Args:
+    text (str): النص الذي يحتاج إلى تنظيف.
+
+    Returns:
+    dict: قاموس يحتوي على المعلومات المطلوبة.
+    """
+    # استبدال الأحرف الخاصة بفواصل
     chars_to_remove = "?,☺,☻,♥,♦,♠,♣,§,¶,+,="
     for char in chars_to_remove:
         text = text.replace(char, ",")
 
-    # Remove "," from the beginning of the string
+    # إزالة الفاصلة من بداية النص إذا كانت موجودة
     if len(text) > 0 and text[0] == ",":
         text = text[1:]
-    # Remove duplicate ","
+
+    # إزالة الفواصل المكررة
     text = ','.join(text.split(","))
     cleaned_string = text.replace("\x01", ",").replace("\x02", ",").replace(
         "\x03", ",").replace("\x04", ",").replace("\x05", ",").replace("\x0e", ",").replace("\x1e", ",").replace("\x13", ",").replace("\x1f", ",").replace("\x1a", ",")
     cleaned_string = cleaned_string.replace("\x0f", ",").replace(
-        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",")
-    # Split the string by "," and store it into a list
+        "\x14", ",").replace("\x15", ",").replace("\x06", ",").replace("\x07", ",").replace("\x19", ",").replace("\x08", ",").replace("\t", ",").replace(".00", "").replace("\x16", ",").replace("\x0b", ",").replace("\x0c", ",")
+
+    # تقسيم النص المنظف إلى قائمة بناءً على الفواصل
     result = cleaned_string.split(",")
     result2 = list(filter(None, result))
-    return result2
+    # إنشاء قاموس من القائمة بفرض ترتيب ثابت
+    print(result2)
+    return {
+        'vendor_name': result2[0] if len(result2) > 0 else '',
+        'date': result2[1] if len(result2) > 1 else '',
+        'vat_id': result2[2] if len(result2) > 2 else '',
+        'invoice_total': result2[3] if len(result2) > 3 else '',
+        'vat_total': result2[4] if len(result2) > 4 else ''
+    }
 
 
 def decode_qr_code(image):
@@ -450,12 +470,11 @@ class MainWindow(QMainWindow):
             sheet = workbook.active
             sheet.title = "QR code data"
             sheet.append(["Image File", "Name of Seller",
-                          "VAT Number", "Date and Time", "Total Amount", "VAT Amount"])
+                          "VAT Number", "Date and Time", "Total Amount", "VAT Amount", "Invoice Number"])
 
             num_files = len(os.listdir(folder_path))
+            invoice_number = "0"
             self.progressBar.setMaximum(num_files)
-
-            extracted_data = []  # List to store extracted data from all images
 
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
@@ -464,17 +483,16 @@ class MainWindow(QMainWindow):
                     invoice_data, threshold = decode_qr_code(image)
                     if invoice_data:
                         # Clean the invoice data using the remove_non_printable function
-                        invoice_data = remove_non_printable(invoice_data)
-                        # Additional cleaning step before writing to Excel
-                        cleaned_invoice_data = ["".join(
-                            char for char in item if char.isprintable()) for item in invoice_data]
-                        sheet.append([file_path] + cleaned_invoice_data)
+                        invoice_data_dict = remove_non_printable(invoice_data)
+                        # Append the dictionary directly to the Excel sheet
+                        sheet.append(
+                            [file_path] + list(invoice_data_dict.values()) + [invoice_number])
                         # Add extracted data to the list
-                        # Only append cleaned data
-                        extracted_data.append(cleaned_invoice_data)
+                        invoice_data_dict.update(
+                            {"image_path": file_path, "invoice_number": invoice_number})
                     else:
                         sheet.append(
-                            [file_path, "qr not detected", 0, 0, 0, 0])
+                            [file_path, "qr not detected", 0, 0, 0, 0, 0])
 
                     self.progressBar.setValue(sheet.max_row)
 
@@ -484,7 +502,7 @@ class MainWindow(QMainWindow):
 
             # Save extracted data to the database
             detection_id = save_detection_to_database(
-                self.db_connection, num_files, extracted_data)
+                self.db_connection, num_files, invoice_data_dict)
             if detection_id is not None:
                 QMessageBox.information(
                     self, 'Information', 'Extracted data saved to the database successfully!')

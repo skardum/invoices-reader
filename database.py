@@ -11,7 +11,7 @@ def connect_to_database():
     return connection
 
 
-def save_detection_to_database(connection, num_invoices, extracted_data):
+def save_detection_to_database(connection, num_invoices, invoice_data_dict):
     cursor = connection.cursor()
     try:
         # Insert data into main_records table
@@ -22,11 +22,10 @@ def save_detection_to_database(connection, num_invoices, extracted_data):
         detection_id = cursor.lastrowid  # Get the last inserted detection ID
 
         # Insert extracted data into extracted_data table
-        for data in extracted_data:
-            cursor.execute("""
-                INSERT INTO extracted_data (id, image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (detection_id, *data))
+        cursor.execute("""
+            INSERT INTO extracted_data (id, image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (detection_id, invoice_data_dict["image_path"], invoice_data_dict["vendor_name"], invoice_data_dict["date"], invoice_data_dict["vat_id"], invoice_data_dict["invoice_total"], invoice_data_dict["vat_total"], invoice_data_dict["invoice_number"]))
 
         connection.commit()
         return detection_id
