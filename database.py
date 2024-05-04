@@ -166,6 +166,16 @@ class DatabaseDialog(QDialog):
             return
 
         detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+
+        try:
+            main_window.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (detection_id,))
+            main_window.records = main_window.cursor.fetchall()
+            if main_window.records:
+                main_window.display_record(main_window.records[0])
+                main_window.current_record_index = 0
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Failed to fetch records: {str(e)}')
+
         try:
             self.cursor.execute(
                 "SELECT image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number FROM extracted_data WHERE id=?", (detection_id,))
