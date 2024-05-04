@@ -2,8 +2,12 @@ import sys
 import sqlite3
 from PyQt6.QtWidgets import QApplication, QDialog, QTableWidgetItem, QMessageBox, QFileDialog
 from PyQt6.uic import loadUi
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QGraphicsScene
+from PyQt6.QtCore import Qt
 from datetime import datetime
 import xlsxwriter
+import os
 
 
 def connect_to_database():
@@ -42,9 +46,9 @@ def insert_extracted_data(connection, detection_id, image_path, vendor_name, dat
 
 
 class DatabaseDialog(QDialog):
-    def __init__(self, current_detection_id=None):
+    def __init__(self, main_window=None):  # Add main_window parameter
         super().__init__()
-        self.current_detection_id = current_detection_id
+        self.main_window = main_window  # Store the reference to MainWindow
         loadUi('db.ui', self)  # Load the UI file
         self.setWindowTitle("Database Viewer")
         self.connection = connect_to_database()  # Use the function directly
@@ -55,11 +59,10 @@ class DatabaseDialog(QDialog):
 
     def setup_ui(self):
         self.pushButton_4.clicked.connect(self.close)  # Exit button
-        self.pushButton_3.clicked.connect(
-            self.load_main_records)  # Refresh button
-        self.pushButton_2.clicked.connect(
+        self.export_btn.clicked.connect(
             self.export_to_excel)  # Export button
-        self.pushButton.clicked.connect(self.delete_detection)  # Delete button
+        self.delete_btn.clicked.connect(self.delete_detection)  # Delete button
+        self.load_in_main_ui.clicked.connect(lambda: self.load_in_main_app(self.main_window))
 
     def create_tables(self):
         try:
@@ -100,57 +103,98 @@ class DatabaseDialog(QDialog):
                 self.tableWidget.setItem(index, col, item)
 
     def export_to_excel(self):
-        if self.current_detection_id is not None:
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, "Export Detected Data to Excel", "", "Excel Files (*.xlsx);;All Files (*)")
-            if file_path:
-                if not file_path.endswith('.xlsx'):
-                    file_path += '.xlsx'
-                try:
-                    workbook = xlsxwriter.Workbook(file_path)
-                    worksheet = workbook.add_worksheet()
-                    headers = ['ID', 'Image File', 'Vendor Name', 'Date', 'VAT ID',
-                               'Invoice Total', 'VAT Total', 'Invoice Number']
-                    for col, header in enumerate(headers):
-                        worksheet.write(0, col, header)
+        selected_row = self.tableWidget.currentRow()
+        if selected_row == -1:
+            QMessageBox.warning(self, 'No Selection', 'Please select a detection to export!')
+            return
 
-                    self.cursor.execute(
-                        "SELECT * FROM extracted_data WHERE id=?", (self.current_detection_id,))
-                    detected_data = self.cursor.fetchall()
-                    for row_num, record in enumerate(detected_data, start=1):
-                        for col_num, value in enumerate(record):
-                            worksheet.write(row_num, col_num, value)
+        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Export Detected Data to Excel", "", "Excel Files (*.xlsx);;All Files (*)")
+        if not file_path:
+            return
 
-                    workbook.close()
-                    QMessageBox.information(
-                        self, 'Export Successful', 'Detected data exported to Excel successfully!')
-                except Exception as e:
-                    QMessageBox.warning(
-                        self, 'Export Failed', f'Failed to export detected data to Excel: {str(e)}')
-        else:
-            QMessageBox.warning(
-                self, 'No Selection', 'Please select a detection to export!')
+        if not file_path.endswith('.xlsx'):
+            file_path += '.xlsx'
+
+        try:
+            workbook = xlsxwriter.Workbook(file_path)
+            worksheet = workbook.add_worksheet()
+            headers = ['ID', 'Image File', 'Vendor Name', 'Date',
+                       'VAT ID', 'Invoice Total', 'VAT Total', 'Invoice Number']
+            for col, header in enumerate(headers):
+                worksheet.write(0, col, header)
+
+            self.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (detection_id,))
+            detected_data = self.cursor.fetchall()
+            for row_num, record in enumerate(detected_data, start=1):
+                for col_num, value in enumerate(record):
+                    worksheet.write(row_num, col_num, value)
+
+            workbook.close()
+            QMessageBox.information(self, 'Export Successful', 'Detected data exported to Excel successfully!')
+        except Exception as e:
+            QMessageBox.warning(self, 'Export Failed', f'Failed to export detected data to Excel: {str(e)}')
 
     def delete_detection(self):
-        if self.current_detection_id is not None:
-            confirm = QMessageBox.question(
-                self, 'Confirmation', 'Are you sure you want to delete this detection?', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-            if confirm == QMessageBox.StandardButton.Yes:
-                try:
-                    self.cursor.execute(
-                        "DELETE FROM main_records WHERE id=?", (self.current_detection_id,))
-                    self.cursor.execute(
-                        "DELETE FROM extracted_data WHERE id=?", (self.current_detection_id,))
-                    self.connection.commit()
-                    self.load_main_records()
-                    QMessageBox.information(
-                        self, 'Deletion Successful', 'Detection deleted successfully!')
-                except Exception as e:
-                    QMessageBox.warning(
-                        self, 'Deletion Failed', f'Failed to delete detection: {str(e)}')
-        else:
-            QMessageBox.warning(
-                self, 'No Selection', 'Please select a detection to delete!')
+        selected_row = self.tableWidget.currentRow()
+        if selected_row == -1:
+            QMessageBox.warning(self, 'No Selection', 'Please select a detection to delete!')
+            return
+
+        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        confirm = QMessageBox.question(
+            self, 'Confirmation', 'Are you sure you want to delete this detection?', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirm == QMessageBox.StandardButton.Yes:
+            try:
+                self.cursor.execute(
+                    "DELETE FROM extracted_data WHERE id=?", (detection_id,))
+                self.cursor.execute(
+                    "DELETE FROM main_records WHERE id=?", (detection_id,))
+                self.connection.commit()
+                self.load_main_records()
+                QMessageBox.information(
+                    self, 'Deletion Successful', 'Detection and related invoices deleted successfully!')
+            except Exception as e:
+                QMessageBox.warning(
+                    self, 'Deletion Failed', f'Failed to delete detection: {str(e)}')
+
+    def load_in_main_app(self, main_window):
+        selected_row = self.tableWidget.currentRow()
+        if selected_row == -1:
+            QMessageBox.warning(self, 'No Selection', 'Please select a detection to load!')
+            return
+
+        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        try:
+            self.cursor.execute(
+                "SELECT image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number FROM extracted_data WHERE id=?", (detection_id,))
+            data = self.cursor.fetchone()
+            if data:
+                image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number = data
+
+                main_window.vendor_lineedit.setText(vendor_name)
+                main_window.vatid_lineedit.setText(vat_id)
+                main_window.date_lineedit.setText(date)
+                main_window.total_lineedit.setText(str(invoice_total))
+                main_window.vatamount_lineedit.setText(str(vat_total))
+                main_window.invoicenumber_lineedit.setText(invoice_number)
+
+                # Load image into graphics view
+                if os.path.exists(image_path):
+                    pixmap = QPixmap(image_path)
+                    if not pixmap.isNull():
+                        scaled_pixmap = pixmap.scaled(main_window.graphicsView.size(),
+                                                      Qt.AspectRatioMode.KeepAspectRatio)
+                        scene = QGraphicsScene()
+                        scene.addPixmap(scaled_pixmap)
+                        main_window.graphicsView.setScene(scene)
+                else:
+                    QMessageBox.warning(self, 'Image Load Error', 'Image file does not exist.')
+            else:
+                QMessageBox.warning(self, 'Data Load Error', 'No data found for the selected detection.')
+        except Exception as e:
+            QMessageBox.critical(self, 'Loading Error', f'Failed to load data: {str(e)}')
 
 
 if __name__ == "__main__":

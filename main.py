@@ -331,7 +331,7 @@ class MainWindow(QMainWindow):
         self.new_batch.clicked.connect(self.create_new_batch)
 
     def show_database_form(self):
-        database_dialog = DatabaseDialog()
+        database_dialog = DatabaseDialog(self)
         database_dialog.exec()
 
     def create_new_batch(self):
@@ -345,11 +345,11 @@ class MainWindow(QMainWindow):
 
         # Create a new unique detection ID
         self.current_detection_id = self.generate_unique_detection_id()
-        print(f"New detection ID: {self.current_detection_id}")
 
     def generate_unique_detection_id(self):
         # Generate a unique ID (example method, modify as needed)
         detection_id = int(time.time())  # Using current time as a simple unique ID
+        print(f"New detection ID: {detection_id}")
         return detection_id
 
     def ai_extract(self):
