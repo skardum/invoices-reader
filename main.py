@@ -16,6 +16,7 @@ import PIL.Image
 from datetime import datetime
 from database import connect_to_database, save_detection_to_database, DatabaseDialog, insert_extracted_data
 import google.generativeai as genai
+import time  # Import time module for generating unique detection IDs
 
 
 # Load environment variables
@@ -316,6 +317,7 @@ class MainWindow(QMainWindow):
         self.previous_extractions.clicked.connect(self.show_database_form)
         self.current_row = 2  # Start from row 2 to skip header
         self.setStyleSheet(dark_theme_stylesheet)
+        self.current_detection_id = self.generate_unique_detection_id()
 
         # Connect the AI extract button to the new model
         self.ai_button.clicked.connect(self.ai_extract)
@@ -326,10 +328,29 @@ class MainWindow(QMainWindow):
         # Connect to the database
         self.db_connection = connect_to_database()
         self.image_path = None
+        self.new_batch.clicked.connect(self.create_new_batch)
 
     def show_database_form(self):
         database_dialog = DatabaseDialog()
         database_dialog.exec()
+
+    def create_new_batch(self):
+        # Clear all inputs
+        self.vendor_lineedit.clear()
+        self.vatid_lineedit.clear()
+        self.date_lineedit.clear()
+        self.total_lineedit.clear()
+        self.vatamount_lineedit.clear()
+        self.invoicenumber_lineedit.clear()
+
+        # Create a new unique detection ID
+        self.current_detection_id = self.generate_unique_detection_id()
+        print(f"New detection ID: {self.current_detection_id}")
+
+    def generate_unique_detection_id(self):
+        # Generate a unique ID (example method, modify as needed)
+        detection_id = int(time.time())  # Using current time as a simple unique ID
+        return detection_id
 
     def ai_extract(self):
         # Get the currently displayed pixmap from the graphics view
@@ -488,11 +509,11 @@ class MainWindow(QMainWindow):
             num_files = len(os.listdir(folder_path))
             self.progressBar.setMaximum(num_files)
 
-            # إنشاء سجل في جدول main_records والحصول على detection_id
-            detection_id = save_detection_to_database(
-                self.db_connection, num_files)
+            # إنشاء سجل في جدول main_records واستخدام self.current_detection_id
+            save_detection_to_database(
+                self.db_connection, self.current_detection_id, num_files)
 
-            if detection_id is None:
+            if self.current_detection_id is None:
                 QMessageBox.warning(
                     self, 'Warning', 'Failed to create a detection record in the database.')
                 return
@@ -509,14 +530,14 @@ class MainWindow(QMainWindow):
 
                         # استخدام نفس detection_id لكل فاتورة
                         insert_extracted_data(
-                            self.db_connection, num_files, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
+                            self.db_connection, self.current_detection_id, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
                         sheet.append(
                             [invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['vat_id'], invoice_data_dict['date'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number']])
                     else:
                         sheet.append(
                             [file_path, "qr not detected", 0, 0, 0, 0, 0])
                         insert_extracted_data(
-                            self.db_connection, num_files, file_path, "qr not detected", 0, 0, 0, 0, 0)
+                            self.db_connection, self.current_detection_id, file_path, "qr not detected", 0, 0, 0, 0, 0)
                 processed_files += 1
                 progress_percent = int((processed_files / num_files) * 100)
                 self.progressBar.setValue(progress_percent)  # Update the progress bar
@@ -563,8 +584,8 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self, 'Information', 'Invoice saved successfully!')
 
-            # Update data in the database after saving
-            update_extracted_data(self.db_connection, row, self.image_path,
+            # تحديث البيانات في قاعدة البيانات بعد الحفظ
+            insert_extracted_data(self.db_connection, self.current_detection_id, self.image_path,
                                   vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
         except Exception as e:
             QMessageBox.critical(

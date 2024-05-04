@@ -11,21 +11,20 @@ def connect_to_database():
     return connection
 
 
-def save_detection_to_database(connection, num_invoices):
+def save_detection_to_database(connection, detection_id, num_invoices):
     cursor = connection.cursor()
     try:
         # Insert data into main_records table
         cursor.execute("""
-            INSERT INTO main_records (detection_date, num_invoices)
-            VALUES (?, ?)
-        """, (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), num_invoices))
-        detection_id = cursor.lastrowid  # Get the last inserted detection ID
+            INSERT INTO main_records (id, detection_date, num_invoices)
+            VALUES (?, ?, ?)
+        """, (detection_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), num_invoices))
         connection.commit()
-        return detection_id
     except Exception as e:
         connection.rollback()  # Rollback changes if an error occurs
         print(f'Failed to save detection to database: {str(e)}')
         return None
+    return detection_id
 
 
 def insert_extracted_data(connection, detection_id, image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number):
@@ -43,8 +42,9 @@ def insert_extracted_data(connection, detection_id, image_path, vendor_name, dat
 
 
 class DatabaseDialog(QDialog):
-    def __init__(self):
+    def __init__(self, current_detection_id=None):
         super().__init__()
+        self.current_detection_id = current_detection_id
         loadUi('db.ui', self)  # Load the UI file
         self.setWindowTitle("Database Viewer")
         self.connection = connect_to_database()  # Use the function directly
@@ -100,9 +100,7 @@ class DatabaseDialog(QDialog):
                 self.tableWidget.setItem(index, col, item)
 
     def export_to_excel(self):
-        selected_row = self.tableWidget.currentRow()
-        if selected_row != -1:
-            detection_id = int(self.tableWidget.item(selected_row, 0).text())
+        if self.current_detection_id is not None:
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "Export Detected Data to Excel", "", "Excel Files (*.xlsx);;All Files (*)")
             if file_path:
@@ -117,7 +115,7 @@ class DatabaseDialog(QDialog):
                         worksheet.write(0, col, header)
 
                     self.cursor.execute(
-                        "SELECT * FROM extracted_data WHERE id=?", (detection_id,))
+                        "SELECT * FROM extracted_data WHERE id=?", (self.current_detection_id,))
                     detected_data = self.cursor.fetchall()
                     for row_num, record in enumerate(detected_data, start=1):
                         for col_num, value in enumerate(record):
@@ -134,17 +132,15 @@ class DatabaseDialog(QDialog):
                 self, 'No Selection', 'Please select a detection to export!')
 
     def delete_detection(self):
-        selected_row = self.tableWidget.currentRow()
-        if selected_row != -1:
-            detection_id = int(self.tableWidget.item(selected_row, 0).text())
+        if self.current_detection_id is not None:
             confirm = QMessageBox.question(
                 self, 'Confirmation', 'Are you sure you want to delete this detection?', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirm == QMessageBox.StandardButton.Yes:
                 try:
                     self.cursor.execute(
-                        "DELETE FROM main_records WHERE id=?", (detection_id,))
+                        "DELETE FROM main_records WHERE id=?", (self.current_detection_id,))
                     self.cursor.execute(
-                        "DELETE FROM extracted_data WHERE id=?", (detection_id,))
+                        "DELETE FROM extracted_data WHERE id=?", (self.current_detection_id,))
                     self.connection.commit()
                     self.load_main_records()
                     QMessageBox.information(
