@@ -14,11 +14,13 @@ from PyQt6.uic import loadUi
 from threading import Thread
 import PIL.Image
 from datetime import datetime
-from database import connect_to_database, save_detection_to_database, DatabaseDialog, insert_extracted_data
+from database import connect_to_database, save_detection_to_database, DatabaseDialog, insert_extracted_data, ConnectionPool
 import google.generativeai as genai
 import time  # Import time module for generating unique detection IDs
 import sqlite3
 
+# Create a connection pool instance
+pool = ConnectionPool(max_connections=5)
 
 # Load environment variables
 load_dotenv()
@@ -308,7 +310,7 @@ class MainWindow(QMainWindow):
         self.location = None
         self.sheet = None
         self.browseButton1.clicked.connect(self.choose_folder)
-        self.browseButton3.clicked.connect(self.save_location)
+
         self.convertButton.clicked.connect(self.convert)
         self.save.clicked.connect(self.save_invoice)
         self.last.clicked.connect(self.load_last_invoice)
@@ -327,8 +329,10 @@ class MainWindow(QMainWindow):
         self.progress_dialog = None
 
         # Connect to the database
-        self.db_connection = connect_to_database()
-        self.db_connection.row_factory = sqlite3.Row  # Set row factory to Row
+        self.db_connection = connect_to_database(pool)  # Use the connection pool to manage database connections
+
+        # Set row factory to Row for better dictionary-like access
+        self.db_connection.row_factory = sqlite3.Row
         self.cursor = self.db_connection.cursor()
         self.image_path = None
         self.new_batch.clicked.connect(self.create_new_batch)
@@ -338,7 +342,7 @@ class MainWindow(QMainWindow):
         self.current_record_index = 0
 
     def show_database_form(self):
-        database_dialog = DatabaseDialog(self)
+        database_dialog = DatabaseDialog(self, pool)
         database_dialog.exec()
 
     def create_new_batch(self):
@@ -397,17 +401,46 @@ class MainWindow(QMainWindow):
         if value == 100:
             self.progress_dialog.close()
 
-    def load_invoice_data(self, row):
+    def load_invoice_data(self, detection_id):
         try:
-            # Assuming 'row' corresponds to 'id' in your database
-            self.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (row,))
-            record = self.cursor.fetchone()
-            if record:
-                self.display_record(record)
+            self.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (detection_id,))
+            records = self.cursor.fetchall()
+            if records:
+                self.display_record(records[0])
+                self.current_record_index = 0
             else:
                 QMessageBox.warning(self, 'Error', 'No record found!')
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Failed to load data: {str(e)}')
+        try:
+            self.cursor.execute(
+                "SELECT image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number FROM extracted_data WHERE id=?", (detection_id,))
+            data = self.cursor.fetchone()
+            if data:
+                image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number = data
+
+                self.vendor_lineedit.setText(vendor_name)
+                self.vatid_lineedit.setText(vat_id)
+                self.date_lineedit.setText(date)
+                self.total_lineedit.setText(str(invoice_total))
+                self.vatamount_lineedit.setText(str(vat_total))
+                self.invoicenumber_lineedit.setText(invoice_number)
+
+                # Load image into graphics view
+                if os.path.exists(image_path):
+                    pixmap = QPixmap(image_path)
+                    if not pixmap.isNull():
+                        scaled_pixmap = pixmap.scaled(self.graphicsView.size(),
+                                                      Qt.AspectRatioMode.KeepAspectRatio)
+                        scene = QGraphicsScene()
+                        scene.addPixmap(scaled_pixmap)
+                        self.graphicsView.setScene(scene)
+                else:
+                    QMessageBox.warning(self, 'Image Load Error', 'Image file does not exist.')
+            else:
+                QMessageBox.warning(self, 'Data Load Error', 'No data found for the selected detection.')
+        except Exception as e:
+            QMessageBox.critical(self, 'Loading Error', f'Failed to load data: {str(e)}')
 
     def save_invoice(self):
         try:
@@ -430,14 +463,14 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Failed to update invoice: {str(e)}')
 
-    def display_record(self, record):
+    def display_record(self, records):
         # Update UI elements with data from the record
-        self.vendor_lineedit.setText(record['vendor_name'])
-        self.vatid_lineedit.setText(record['vat_id'])
-        self.date_lineedit.setText(record['date'])
-        self.total_lineedit.setText(str(record['invoice_total']))
-        self.vatamount_lineedit.setText(str(record['vat_total']))
-        self.invoicenumber_lineedit.setText(record['invoice_number'])
+        self.vendor_lineedit.setText(records['vendor_name'])
+        self.vatid_lineedit.setText(records['vat_id'])
+        self.date_lineedit.setText(records['date'])
+        self.total_lineedit.setText(str(records['invoice_total']))
+        self.vatamount_lineedit.setText(str(records['vat_total']))
+        self.invoicenumber_lineedit.setText(records['invoice_number'])
 
         # Ensure QGraphicsScene is initialized
         if not self.graphicsView.scene():
@@ -445,7 +478,7 @@ class MainWindow(QMainWindow):
 
         # Now proceed to clear and update the scene
         self.graphicsView.scene().clear()
-        image_path = record['image_file']
+        image_path = records['image_file']
         if os.path.exists(image_path):
             pixmap = QPixmap(image_path)
             self.graphicsView.scene().addPixmap(pixmap)
@@ -492,11 +525,10 @@ class MainWindow(QMainWindow):
 
     def convert(self):
         folder_path = self.folder_path
-        location = self.location
 
-        if not folder_path or not location:
+        if not folder_path:
             QMessageBox.warning(
-                self, 'Error', 'You need to select a folder and a save location!')
+                self, 'Error', 'You need to select a folder!')
             return
 
         try:
@@ -531,30 +563,27 @@ class MainWindow(QMainWindow):
                         # استخدام نفس detection_id لكل فاتورة
                         insert_extracted_data(
                             self.db_connection, self.current_detection_id, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
-                        sheet.append(
-                            [invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['vat_id'], invoice_data_dict['date'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number']])
+
                     else:
-                        sheet.append(
-                            [file_path, "qr not detected", 0, 0, 0, 0, 0])
+
                         insert_extracted_data(
                             self.db_connection, self.current_detection_id, file_path, "qr not detected", 0, 0, 0, 0, 0)
                 processed_files += 1
                 progress_percent = int((processed_files / num_files) * 100)
                 self.progressBar.setValue(progress_percent)  # Update the progress bar
 
-            workbook.save(location)
             QMessageBox.information(
                 self, 'Information', 'All invoices processed successfully!')
 
             # Automatically load the first invoice after saving
-            self.current_row = 2
-            self.load_invoice_data(self.current_row)  # Load data after saving
+
+            self.load_invoice_data(self.current_detection_id)  # Load data after saving
             print("Data loaded successfully!")
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Invoices read failed: {str(e)}')
 
-    def save_invoice(self):
+    def export_invoice(self):
         try:
             if self.location is None or not os.path.exists(self.location):
                 QMessageBox.warning(
@@ -562,7 +591,8 @@ class MainWindow(QMainWindow):
                 return
 
             workbook = openpyxl.load_workbook(self.location)
-            sheet = workbook["QR code data"]
+            sheet = workbook["QR code data"] if "QR code data" in workbook.sheetnames else workbook.create_sheet(
+                "QR code data")
 
             row = self.current_row
 

@@ -9,10 +9,32 @@ from datetime import datetime
 import xlsxwriter
 import os
 
+# Implement a connection pool in database.py
 
-def connect_to_database():
-    connection = sqlite3.connect("detections.db")
-    return connection
+
+class ConnectionPool:
+    def __init__(self, max_connections):
+        self.max_connections = max_connections
+        self.connections = []
+
+    def get_connection(self):
+        # Implement logic to get a connection from the pool
+        if not self.connections:
+            connection = sqlite3.connect("detections.db")
+            self.connections.append(connection)
+            return connection
+        else:
+            return self.connections.pop(0)
+
+    def release_connection(self, connection):
+        # Implement logic to release a connection back to the pool
+        self.connections.append(connection)
+
+# Update connect_to_database function to use the connection pool
+
+
+def connect_to_database(pool):
+    return pool.get_connection()
 
 
 def save_detection_to_database(connection, detection_id, num_invoices):
@@ -46,12 +68,12 @@ def insert_extracted_data(connection, detection_id, image_path, vendor_name, dat
 
 
 class DatabaseDialog(QDialog):
-    def __init__(self, main_window=None):  # Add main_window parameter
+    def __init__(self, main_window=None, pool=None):  # Add pool parameter
         super().__init__()
         self.main_window = main_window  # Store the reference to MainWindow
         loadUi('db.ui', self)  # Load the UI file
         self.setWindowTitle("Database Viewer")
-        self.connection = connect_to_database()  # Use the function directly
+        self.connection = connect_to_database(pool)  # Use the pool to get a connection
         self.cursor = self.connection.cursor()
         self.setup_ui()
         self.create_tables()

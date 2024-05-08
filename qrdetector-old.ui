@@ -161,6 +161,13 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="browseButton1">
+       <property name="text">
+        <string>Choose Folder</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="folder_path_label">
        <property name="text">
@@ -171,14 +178,24 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="browseButton1">
+     <item row="2" column="0">
+      <widget class="QPushButton" name="browseButton3">
        <property name="text">
-        <string>Choose Folder</string>
+        <string>Save Location</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
+      <widget class="QLabel" name="location_label">
+       <property name="text">
+        <string>.................</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
       <widget class="QPushButton" name="convertButton">
        <property name="text">
         <string>Start Qr Reading</string>
