@@ -444,11 +444,11 @@ class MainWindow(QMainWindow):
 
     def save_invoice(self):
         try:
-            current_record = self.records[self.current_record_index]
+            current_record = dict(self.records[self.current_record_index])  # Convert sqlite3.Row to dictionary
             self.cursor.execute("""
                 UPDATE extracted_data
                 SET vendor_name=?, vat_id=?, date=?, invoice_total=?, vat_total=?, invoice_number=?
-                WHERE id=?
+                WHERE id=? and image_file=?
             """, (
                 self.vendor_lineedit.text(),
                 self.vatid_lineedit.text(),
@@ -456,10 +456,26 @@ class MainWindow(QMainWindow):
                 float(self.total_lineedit.text()),
                 float(self.vatamount_lineedit.text()),
                 self.invoicenumber_lineedit.text(),
-                current_record['id']
+                current_record['id'],
+                current_record['image_file']
             ))
             self.db_connection.commit()
             QMessageBox.information(self, 'Information', 'Invoice updated successfully!')
+
+            # Update the corresponding record in the records list with the new data
+            current_record['vendor_name'] = self.vendor_lineedit.text()
+            current_record['vat_id'] = self.vatid_lineedit.text()
+            current_record['date'] = self.date_lineedit.text()
+            current_record['invoice_total'] = float(self.total_lineedit.text())
+            current_record['vat_total'] = float(self.vatamount_lineedit.text())
+            current_record['invoice_number'] = self.invoicenumber_lineedit.text()
+
+            # Update the UI with the edited data
+            self.display_record(current_record)
+
+            # Update the records list with the modified record
+            self.records[self.current_record_index] = current_record
+
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Failed to update invoice: {str(e)}')
 
@@ -532,12 +548,6 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            workbook = openpyxl.Workbook()
-            sheet = workbook.active
-            sheet.title = "QR code data"
-            sheet.append(["Image File", "Name of Seller",
-                          "VAT Number", "Date and Time", "Total Amount", "VAT Amount", "Invoice Number"])
-
             num_files = len(os.listdir(folder_path))
             self.progressBar.setMaximum(num_files)
 
@@ -582,44 +592,6 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(
                 self, 'Error', f'Invoices read failed: {str(e)}')
-
-    def export_invoice(self):
-        try:
-            if self.location is None or not os.path.exists(self.location):
-                QMessageBox.warning(
-                    self, 'Error', 'Please select a valid Excel file location!')
-                return
-
-            workbook = openpyxl.load_workbook(self.location)
-            sheet = workbook["QR code data"] if "QR code data" in workbook.sheetnames else workbook.create_sheet(
-                "QR code data")
-
-            row = self.current_row
-
-            vendor_name = self.vendor_lineedit.text()
-            vat_id = self.vatid_lineedit.text()
-            date = self.date_lineedit.text()
-            invoice_total = self.total_lineedit.text()
-            vat_total = self.vatamount_lineedit.text()
-            invoice_number = self.invoicenumber_lineedit.text()
-
-            sheet.cell(row=row, column=2, value=vendor_name)
-            sheet.cell(row=row, column=3, value=vat_id)
-            sheet.cell(row=row, column=4, value=date)
-            sheet.cell(row=row, column=5, value=invoice_total)
-            sheet.cell(row=row, column=6, value=vat_total)
-            sheet.cell(row=row, column=7, value=invoice_number)
-
-            workbook.save(self.location)
-            QMessageBox.information(
-                self, 'Information', 'Invoice saved successfully!')
-
-            # تحديث البيانات في قاعدة البيانات بعد الحفظ
-            insert_extracted_data(self.db_connection, self.current_detection_id, self.image_path,
-                                  vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
-        except Exception as e:
-            QMessageBox.critical(
-                self, 'Error', f'Failed to save invoice: {str(e)}')
 
 
 if __name__ == '__main__':
