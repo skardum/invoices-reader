@@ -505,24 +505,44 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
 
     def load_next_invoice(self):
+        print("Loading next invoice...")
         if self.current_record_index < len(self.records) - 1:
             self.current_record_index += 1
+            print("Current record index:", self.current_record_index)
             self.display_record(self.records[self.current_record_index])
+            print("Invoice loaded successfully.")
+        else:
+            print("No more invoices to load.")
 
     def load_previous_invoice(self):
+        print("Loading previous invoice...")
         if self.current_record_index > 0:
             self.current_record_index -= 1
+            print("Current record index:", self.current_record_index)
             self.display_record(self.records[self.current_record_index])
+            print("Invoice loaded successfully.")
+        else:
+            print("Already at the first invoice.")
 
     def load_first_invoice(self):
+        print("Loading first invoice...")
         if self.records:
             self.current_record_index = 0
+            print("Current record index:", self.current_record_index)
             self.display_record(self.records[self.current_record_index])
+            print("First invoice loaded successfully.")
+        else:
+            print("No invoices available.")
 
     def load_last_invoice(self):
+        print("Loading last invoice...")
         if self.records:
             self.current_record_index = len(self.records) - 1
+            print("Current record index:", self.current_record_index)
             self.display_record(self.records[self.current_record_index])
+            print("Last invoice loaded successfully.")
+        else:
+            print("No invoices available.")
 
     def choose_folder(self):
         folder_path = QFileDialog.getExistingDirectory(
