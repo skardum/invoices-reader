@@ -3,20 +3,17 @@ import os
 import cv2
 import pyzbar.pyzbar as pyzbar
 import base64
-import openpyxl
 import re
 from dotenv import load_dotenv
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QGraphicsView, QWidget, QDialog, QMessageBox, QFileDialog, QGraphicsScene, QGraphicsPixmapItem
+from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QFileDialog, QGraphicsScene
 from PyQt6 import QtCore
-from PyQt6.QtCore import pyqtSignal, Qt, QObject, QThread
-from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.QtCore import pyqtSignal, Qt, QObject
+from PyQt6.QtGui import QPixmap
 from PyQt6.uic import loadUi
-from threading import Thread
 import PIL.Image
-from datetime import datetime
 from database import connect_to_database, save_detection_to_database, DatabaseDialog, insert_extracted_data, ConnectionPool
 import google.generativeai as genai
-import time  # Import time module for generating unique detection IDs
+import time
 import sqlite3
 
 # Create a connection pool instance
@@ -211,10 +208,14 @@ def remove_non_printable(text):
     result2 = list(filter(None, result))
     # إنشاء قاموس من القائمة بفرض ترتيب ثابت
     print(result2)
+    date_pattern = r'^\d{4}-\d{2}-\d{2}'
+    match = re.search(date_pattern, result2[2] if len(result2) > 1 else '')
+    print(match)
+    date = match.group() if match else result2[2] if len(result2) > 1 else ''
     return {
         'vendor_name': result2[0] if len(result2) > 0 else '',
-        'date': result2[1] if len(result2) > 1 else '',
-        'vat_id': result2[2] if len(result2) > 2 else '',
+        'date': date,
+        'vat_id': result2[1] if len(result2) > 2 else '',
         'invoice_total': result2[3] if len(result2) > 3 else '',
         'vat_total': result2[4] if len(result2) > 4 else ''
     }

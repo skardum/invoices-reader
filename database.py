@@ -9,8 +9,6 @@ from datetime import datetime
 import xlsxwriter
 import os
 
-# Implement a connection pool in database.py
-
 
 class ConnectionPool:
     def __init__(self, max_connections):
@@ -18,7 +16,6 @@ class ConnectionPool:
         self.connections = []
 
     def get_connection(self):
-        # Implement logic to get a connection from the pool
         if not self.connections:
             connection = sqlite3.connect("detections.db")
             self.connections.append(connection)
@@ -27,10 +24,7 @@ class ConnectionPool:
             return self.connections.pop(0)
 
     def release_connection(self, connection):
-        # Implement logic to release a connection back to the pool
         self.connections.append(connection)
-
-# Update connect_to_database function to use the connection pool
 
 
 def connect_to_database(pool):
@@ -40,14 +34,13 @@ def connect_to_database(pool):
 def save_detection_to_database(connection, detection_id, num_invoices):
     cursor = connection.cursor()
     try:
-        # Insert data into main_records table
         cursor.execute("""
             INSERT INTO main_records (id, detection_date, num_invoices)
             VALUES (?, ?, ?)
         """, (detection_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), num_invoices))
         connection.commit()
     except Exception as e:
-        connection.rollback()  # Rollback changes if an error occurs
+        connection.rollback()
         print(f'Failed to save detection to database: {str(e)}')
         return None
     return detection_id
@@ -56,7 +49,6 @@ def save_detection_to_database(connection, detection_id, num_invoices):
 def insert_extracted_data(connection, detection_id, image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number):
     cursor = connection.cursor()
     try:
-        # Insert extracted data into extracted_data table
         cursor.execute("""
             INSERT INTO extracted_data (id, image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -68,22 +60,22 @@ def insert_extracted_data(connection, detection_id, image_path, vendor_name, dat
 
 
 class DatabaseDialog(QDialog):
-    def __init__(self, main_window=None, pool=None):  # Add pool parameter
+    def __init__(self, main_window=None, pool=None):
         super().__init__()
-        self.main_window = main_window  # Store the reference to MainWindow
-        loadUi('db.ui', self)  # Load the UI file
+        self.main_window = main_window
+        loadUi('db.ui', self)
         self.setWindowTitle("Database Viewer")
-        self.connection = connect_to_database(pool)  # Use the pool to get a connection
+        self.pool = pool
+        self.connection = connect_to_database(self.pool)
         self.cursor = self.connection.cursor()
         self.setup_ui()
         self.create_tables()
         self.load_main_records()
 
     def setup_ui(self):
-        self.pushButton_4.clicked.connect(self.close)  # Exit button
-        self.export_btn.clicked.connect(
-            self.export_to_excel)  # Export button
-        self.delete_btn.clicked.connect(self.delete_detection)  # Delete button
+        self.pushButton_4.clicked.connect(self.close)
+        self.export_btn.clicked.connect(self.export_to_excel)
+        self.delete_btn.clicked.connect(self.delete_detection)
         self.load_in_main_ui.clicked.connect(lambda: self.load_in_main_app(self.main_window))
 
     def create_tables(self):
@@ -114,15 +106,19 @@ class DatabaseDialog(QDialog):
                 self, 'Database Error', f'Failed to create tables: {str(e)}')
 
     def load_main_records(self):
-        self.tableWidget.clearContents()
-        self.tableWidget.setRowCount(0)
-        self.cursor.execute("SELECT * FROM main_records")
-        main_records = self.cursor.fetchall()
-        for index, record in enumerate(main_records):
-            self.tableWidget.insertRow(index)
-            for col, value in enumerate(record):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(index, col, item)
+        try:
+            self.tableWidget.clearContents()
+            self.tableWidget.setRowCount(0)
+            self.cursor.execute("SELECT * FROM main_records")
+            main_records = self.cursor.fetchall()
+            for index, record in enumerate(main_records):
+                self.tableWidget.insertRow(index)
+                for col, value in enumerate(record):
+                    item = QTableWidgetItem(str(value))
+                    self.tableWidget.setItem(index, col, item)
+        except Exception as e:
+            QMessageBox.critical(
+                self, 'Database Error', f'Failed to load main records: {str(e)}')
 
     def export_to_excel(self):
         selected_row = self.tableWidget.currentRow()
@@ -130,7 +126,7 @@ class DatabaseDialog(QDialog):
             QMessageBox.warning(self, 'No Selection', 'Please select a detection to export!')
             return
 
-        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        detection_id = self.tableWidget.item(selected_row, 0).text()
         file_path, _ = QFileDialog.getSaveFileName(
             self, "Export Detected Data to Excel", "", "Excel Files (*.xlsx);;All Files (*)")
         if not file_path:
@@ -164,7 +160,7 @@ class DatabaseDialog(QDialog):
             QMessageBox.warning(self, 'No Selection', 'Please select a detection to delete!')
             return
 
-        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        detection_id = self.tableWidget.item(selected_row, 0).text()
         confirm = QMessageBox.question(
             self, 'Confirmation', 'Are you sure you want to delete this detection?', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if confirm == QMessageBox.StandardButton.Yes:
@@ -187,7 +183,7 @@ class DatabaseDialog(QDialog):
             QMessageBox.warning(self, 'No Selection', 'Please select a detection to load!')
             return
 
-        detection_id = self.tableWidget.item(selected_row, 0).text()  # Assuming the ID is in the first column
+        detection_id = self.tableWidget.item(selected_row, 0).text()
 
         try:
             main_window.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (detection_id,))
@@ -212,7 +208,6 @@ class DatabaseDialog(QDialog):
                 main_window.vatamount_lineedit.setText(str(vat_total))
                 main_window.invoicenumber_lineedit.setText(invoice_number)
 
-                # Load image into graphics view
                 if os.path.exists(image_path):
                     pixmap = QPixmap(image_path)
                     if not pixmap.isNull():
@@ -228,8 +223,13 @@ class DatabaseDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, 'Loading Error', f'Failed to load data: {str(e)}')
 
+    def closeEvent(self, event):
+        self.pool.release_connection(self.connection)
+        super().closeEvent(event)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    dialog = DatabaseDialog()
+    pool = ConnectionPool(max_connections=5)
+    dialog = DatabaseDialog(pool=pool)
     dialog.exec()
