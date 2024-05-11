@@ -5,7 +5,7 @@ import pyzbar.pyzbar as pyzbar
 import base64
 import re
 from dotenv import load_dotenv
-from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QFileDialog, QGraphicsScene
+from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QFileDialog, QLabel
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal, Qt, QObject
 from PyQt6.QtGui import QPixmap
@@ -365,8 +365,8 @@ class MainWindow(QMainWindow):
         return detection_id
 
     def ai_extract(self):
-        # Get the currently displayed pixmap from the graphics view
-        pixmap = self.graphicsView.scene().items()[0].pixmap()
+        # Get the currently displayed pixmap
+        pixmap = QPixmap(self.image_path)
 
         # Convert pixmap to image
         image = pixmap.toImage()
@@ -430,16 +430,10 @@ class MainWindow(QMainWindow):
                 # Load image into graphics view
                 if os.path.exists(image_path):
                     pixmap = QPixmap(image_path)
-                    if not pixmap.isNull():
-                        scaled_pixmap = pixmap.scaled(self.graphicsView.size(),
-                                                      Qt.AspectRatioMode.KeepAspectRatio)
-                        scene = QGraphicsScene()
-                        scene.addPixmap(scaled_pixmap)
-                        self.graphicsView.setScene(scene)
+                    self.label_7.setPixmap(pixmap)
+                    self.label_7.setScaledContents(True)  # Scale pixmap to fit QLabel
                 else:
-                    QMessageBox.warning(self, 'Image Load Error', 'Image file does not exist.')
-            else:
-                QMessageBox.warning(self, 'Data Load Error', 'No data found for the selected detection.')
+                    QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
         except Exception as e:
             QMessageBox.critical(self, 'Loading Error', f'Failed to load data: {str(e)}')
 
@@ -489,18 +483,12 @@ class MainWindow(QMainWindow):
         self.vatamount_lineedit.setText(str(records['vat_total']))
         self.invoicenumber_lineedit.setText(records['invoice_number'])
 
-        # Ensure QGraphicsScene is initialized
-        if not self.graphicsView.scene():
-            self.graphicsView.setScene(QGraphicsScene())
-
-        # Now proceed to clear and update the scene
-        self.graphicsView.scene().clear()
+        # Load image into QLabel
         image_path = records['image_file']
         if os.path.exists(image_path):
             pixmap = QPixmap(image_path)
-            self.graphicsView.scene().addPixmap(pixmap)
-            self.graphicsView.fitInView(self.graphicsView.scene().itemsBoundingRect(),
-                                        Qt.AspectRatioMode.KeepAspectRatio)
+            self.label_7.setPixmap(pixmap)
+            self.label_7.setScaledContents(True)  # Scale pixmap to fit QLabel
         else:
             QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
 

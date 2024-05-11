@@ -3,7 +3,6 @@ import sqlite3
 from PyQt6.QtWidgets import QApplication, QDialog, QTableWidgetItem, QMessageBox, QFileDialog
 from PyQt6.uic import loadUi
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QGraphicsScene
 from PyQt6.QtCore import Qt
 from datetime import datetime
 import xlsxwriter
@@ -211,11 +210,8 @@ class DatabaseDialog(QDialog):
                 if os.path.exists(image_path):
                     pixmap = QPixmap(image_path)
                     if not pixmap.isNull():
-                        scaled_pixmap = pixmap.scaled(main_window.graphicsView.size(),
-                                                      Qt.AspectRatioMode.KeepAspectRatio)
-                        scene = QGraphicsScene()
-                        scene.addPixmap(scaled_pixmap)
-                        main_window.graphicsView.setScene(scene)
+                        main_window.label_7.setPixmap(pixmap)
+                        main_window.label_7.setScaledContents(True)  # Maintain aspect ratio
                 else:
                     QMessageBox.warning(self, 'Image Load Error', 'Image file does not exist.')
             else:

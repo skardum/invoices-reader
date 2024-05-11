@@ -118,6 +118,13 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="2">
+      <widget class="QPushButton" name="next">
+       <property name="text">
+        <string>&gt;</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="first">
        <property name="text">
@@ -132,13 +139,6 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="next">
-       <property name="text">
-        <string>&gt;</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="3">
       <widget class="QPushButton" name="last">
        <property name="text">
@@ -147,7 +147,14 @@
       </widget>
      </item>
      <item row="1" column="0" colspan="4">
-      <widget class="QGraphicsView" name="graphicsView"/>
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
