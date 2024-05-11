@@ -431,7 +431,6 @@ class MainWindow(QMainWindow):
                 if os.path.exists(image_path):
                     pixmap = QPixmap(image_path)
                     self.label_7.setPixmap(pixmap)
-                    self.label_7.setScaledContents(True)  # Scale pixmap to fit QLabel
                 else:
                     QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
         except Exception as e:
@@ -488,7 +487,6 @@ class MainWindow(QMainWindow):
         if os.path.exists(image_path):
             pixmap = QPixmap(image_path)
             self.label_7.setPixmap(pixmap)
-            self.label_7.setScaledContents(True)  # Scale pixmap to fit QLabel
         else:
             QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
 
