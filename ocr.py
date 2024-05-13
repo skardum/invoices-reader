@@ -1,9 +1,11 @@
 import paddleocr
 import cv2
 import spacy
+from spacy.language import Language
 from spacy.lang.en import English
 from spacy.lang.ar import Arabic
 from spacy.pipeline import EntityRuler
+from spacy.tokens import Span
 # from gliner_spacy.pipeline import GlinerSpacy
 
 
@@ -33,13 +35,21 @@ def ocr_text(image):
         return None
 
 
+@Language.component("label_adder")
+def add_labels(doc):
+    labels = ["vendor name", "vendor vat id", "invoice date", "invoice number", "vat amount", "invoice total amount"]
+    for label in labels:
+        doc.ents += (Span(doc, 0, 0, label),)  # Adding a dummy span with the label
+    return doc
+
+
 def glinertext(text):
     nlp = spacy.load("en_core_web_lg")
-    # nlp.add_pipe("gliner_spacy", config={"labels": ["vendor name", "vat id", "invoice date", "invoice number", "vat amount", "invoice total amount"]})
+    nlp.add_pipe("label_adder", last=True)
     doc = nlp(text)
     for ent in doc.ents:
         print(ent.text, ent.label_)
-        return ent.text, ent.label_
+    return doc
 
 
 def update_ui_with_ocrdata(ui, data):

@@ -345,7 +345,7 @@ class MainWindow(QMainWindow):
         self.ocr_btn.clicked.connect(self.ocr)
 
     def ocr(self):
-        image = self.label_7.pixmap().toImage().scaled(400, 400).save('ocr.jpg', 'JPG')
+        image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
         text = ocr_text("ocr.jpg")
         data = glinertext(text)
         # update_ui_with_ocrdata(self, data)
