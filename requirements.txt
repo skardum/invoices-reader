@@ -5,3 +5,8 @@ pyzbar
 pillow
 python-dotenv
 google-generativeai
+paddlepaddle 
+paddlehub
+pytorch-cpu
+torchvision-cpu
+pytorch

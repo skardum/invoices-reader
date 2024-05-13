@@ -15,6 +15,7 @@ from database import connect_to_database, save_detection_to_database, DatabaseDi
 import google.generativeai as genai
 import time
 import sqlite3
+from ocr import ocr_text, update_ui_with_ocrdata, glinertext
 
 # Create a connection pool instance
 pool = ConnectionPool(max_connections=5)
@@ -341,6 +342,13 @@ class MainWindow(QMainWindow):
         # Initialize records list and current record index for navigation
         self.records = []
         self.current_record_index = 0
+        self.ocr_btn.clicked.connect(self.ocr)
+
+    def ocr(self):
+        image = self.label_7.pixmap().toImage().scaled(400, 400).save('ocr.jpg', 'JPG')
+        text = ocr_text("ocr.jpg")
+        data = glinertext(text)
+        # update_ui_with_ocrdata(self, data)
 
     def show_database_form(self):
         database_dialog = DatabaseDialog(self, pool)
