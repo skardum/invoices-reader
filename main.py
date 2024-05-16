@@ -15,7 +15,7 @@ from database import connect_to_database, save_detection_to_database, DatabaseDi
 import google.generativeai as genai
 import time
 import sqlite3
-from ocr import ocr_text, update_ui_with_ocrdata, glinertext
+from ocr import ocr_text, update_ui_with_ocrdata, extract_with_gemini
 
 # Create a connection pool instance
 pool = ConnectionPool(max_connections=5)
@@ -28,7 +28,7 @@ os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
-def process_text_and_fill_ui(image_data):
+def gemini_process_img_and_fill_ui(image_data):
     try:
         model = genai.GenerativeModel('gemini-pro-vision')
         response = model.generate_content(['''Extract the following fields from this invoice and format the information as a dictionary:
@@ -156,7 +156,7 @@ class AiExtractor(QObject):
                 image_data = PIL.Image.open(file)
                 self.progress_changed.emit(
                     25, "Image loaded")  # Emit progress update
-                parsed_data = process_text_and_fill_ui(image_data)
+                parsed_data = gemini_process_img_and_fill_ui(image_data)
                 if parsed_data:
                     self.progress_changed.emit(
                         50, "Data extracted")  # Emit progress update
@@ -347,8 +347,8 @@ class MainWindow(QMainWindow):
     def ocr(self):
         image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
         text = ocr_text("ocr.jpg")
-        data = glinertext(text)
-        # update_ui_with_ocrdata(self, data)
+        data = extract_with_gemini(text)
+        update_ui_with_ocrdata(self, data)
 
     def show_database_form(self):
         database_dialog = DatabaseDialog(self, pool)
