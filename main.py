@@ -16,6 +16,7 @@ import google.generativeai as genai
 import time
 import sqlite3
 from ocr import ocr_text, update_ui_with_ocrdata, extract_with_gemini
+from ollama_ocr import ocr_for_ollama, process_ollama_and_fill_ui, update_ui_with_ollama_data
 
 # Create a connection pool instance
 pool = ConnectionPool(max_connections=5)
@@ -344,11 +345,17 @@ class MainWindow(QMainWindow):
         self.current_record_index = 0
         self.ocr_btn.clicked.connect(self.ocr)
 
-    def ocr(self):
+    '''def ocr(self):
         image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
         text = ocr_text("ocr.jpg")
         data = extract_with_gemini(text)
-        update_ui_with_ocrdata(self, data)
+        update_ui_with_ocrdata(self, data)'''
+
+    def ocr(self):
+        image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
+        text = ocr_for_ollama("ocr.jpg")
+        data = process_ollama_and_fill_ui(text)
+        update_ui_with_ollama_data(self, data)
 
     def show_database_form(self):
         database_dialog = DatabaseDialog(self, pool)
