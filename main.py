@@ -430,34 +430,13 @@ class MainWindow(QMainWindow):
             self.cursor.execute("SELECT * FROM extracted_data WHERE id=?", (detection_id,))
             records = self.cursor.fetchall()
             if records:
+                self.records = records  # Store the records
                 self.display_record(records[0])
-                self.current_record_index = 0
+                self.current_record_index = 0  # Reset the index to the first record
             else:
                 QMessageBox.warning(self, 'Error', 'No record found!')
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Failed to load data: {str(e)}')
-        try:
-            self.cursor.execute(
-                "SELECT image_file, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number FROM extracted_data WHERE id=?", (detection_id,))
-            data = self.cursor.fetchone()
-            if data:
-                image_path, vendor_name, date, vat_id, invoice_total, vat_total, invoice_number = data
-
-                self.vendor_lineedit.setText(vendor_name)
-                self.vatid_lineedit.setText(vat_id)
-                self.date_lineedit.setText(date)
-                self.total_lineedit.setText(str(invoice_total))
-                self.vatamount_lineedit.setText(str(vat_total))
-                self.invoicenumber_lineedit.setText(invoice_number)
-
-                # Load image into graphics view
-                if os.path.exists(image_path):
-                    pixmap = QPixmap(image_path)
-                    self.label_7.setPixmap(pixmap)
-                else:
-                    QMessageBox.warning(self, 'Error', 'Image file not found at the specified path.')
-        except Exception as e:
-            QMessageBox.critical(self, 'Loading Error', f'Failed to load data: {str(e)}')
 
     def save_invoice(self):
         try:
