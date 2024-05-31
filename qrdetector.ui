@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>969</width>
-    <height>386</height>
+    <width>724</width>
+    <height>381</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,17 +19,43 @@
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="0">
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="0" column="0">
+        <item row="1" column="0">
          <widget class="QPushButton" name="previous_extractions">
           <property name="text">
            <string>History</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="1" column="1">
          <widget class="QPushButton" name="new_batch">
           <property name="text">
            <string>New Batch</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QComboBox" name="comboBox">
+          <item>
+           <property name="text">
+            <string>بدون</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>GEMINI</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>OLLAMA</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>خيارات الذكاء الاصطناعي</string>
           </property>
          </widget>
         </item>
@@ -234,7 +260,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>969</width>
+     <width>724</width>
      <height>21</height>
     </rect>
    </property>

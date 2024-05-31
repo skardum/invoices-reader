@@ -5,7 +5,7 @@ import pyzbar.pyzbar as pyzbar
 import base64
 import re
 from dotenv import load_dotenv
-from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QFileDialog, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QFileDialog, QLabel, QComboBox
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal, Qt, QObject
 from PyQt6.QtGui import QPixmap
@@ -345,17 +345,25 @@ class MainWindow(QMainWindow):
         self.current_record_index = 0
         self.ocr_btn.clicked.connect(self.ocr)
 
-    '''def ocr(self):
-        image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
-        text = ocr_text("ocr.jpg")
-        data = extract_with_gemini(text)
-        update_ui_with_ocrdata(self, data)'''
+        # Add comboBox for processing mode selection
+        self.comboBox.currentIndexChanged.connect(self.update_processing_mode)
+        self.current_processing_mode = "بدون"  # Default mode
+
+    def update_processing_mode(self, index):
+        # Update current processing mode based on comboBox selection
+        self.current_processing_mode = self.comboBox.itemText(index)
+        print(f"Processing mode updated to: {self.current_processing_mode}")
 
     def ocr(self):
         image = self.label_7.pixmap().toImage().save('ocr.jpg', 'JPG')
-        text = ocr_for_ollama("ocr.jpg")
-        data = process_ollama_and_fill_ui(text)
-        update_ui_with_ollama_data(self, data)
+        if self.current_processing_mode == "gemini":
+            text = ocr_text("ocr.jpg")
+            data = extract_with_gemini(text)
+            update_ui_with_ocrdata(self, data)
+        elif self.current_processing_mode == "ollama":
+            text = ocr_for_ollama("ocr.jpg")
+            data = process_ollama_and_fill_ui(text)
+            update_ui_with_ollama_data(self, data)
 
     def show_database_form(self):
         database_dialog = DatabaseDialog(self, pool)
@@ -586,20 +594,35 @@ class MainWindow(QMainWindow):
                 file_path = os.path.join(folder_path, file_name)
                 if os.path.isfile(file_path):
                     image = cv2.imread(file_path)
-                    invoice_data, threshold = decode_qr_code(image)
-                    if invoice_data:
-                        invoice_data_dict = remove_non_printable(invoice_data)
-                        invoice_data_dict['image_path'] = file_path
-                        invoice_data_dict['invoice_number'] = "0"  # تحديث هذا حسب الحاجة
-
-                        # استخدام نفس detection_id لكل فاتورة
-                        insert_extracted_data(
-                            self.db_connection, self.current_detection_id, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
-
-                    else:
-
-                        insert_extracted_data(
-                            self.db_connection, self.current_detection_id, file_path, "qr not detected", 0, 0, 0, 0, 0)
+                    if self.current_processing_mode == "بدون":
+                        invoice_data, threshold = decode_qr_code(image)
+                        if invoice_data:
+                            invoice_data_dict = remove_non_printable(invoice_data)
+                            invoice_data_dict['image_path'] = file_path
+                            invoice_data_dict['invoice_number'] = "0"  # Update as needed
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, invoice_data_dict['image_path'], invoice_data_dict['vendor_name'], invoice_data_dict['date'], invoice_data_dict['vat_id'], invoice_data_dict['invoice_total'], invoice_data_dict['vat_total'], invoice_data_dict['invoice_number'])
+                        else:
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, file_path, "qr not detected", 0, 0, 0, 0, 0)
+                    elif self.current_processing_mode == "GEMINI":
+                        text = ocr_text(file_path)
+                        data = extract_with_gemini(text)
+                        if data:
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, file_path, data['vendor_name'], data['date'], data['vat_id'], data['invoice_total'], data['vat_total'], data['invoice_number'])
+                        else:
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, file_path, "data not extracted", 0, 0, 0, 0, 0)
+                    elif self.current_processing_mode == "OLLAMA":
+                        text = ocr_for_ollama(file_path)
+                        data = process_ollama_and_fill_ui(text)
+                        if data:
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, file_path, data['vendor_name'], data['date'], data['vat_id'], data['invoice_total'], data['vat_total'], data['invoice_number'])
+                        else:
+                            insert_extracted_data(
+                                self.db_connection, self.current_detection_id, file_path, "data not extracted", 0, 0, 0, 0, 0)
                 processed_files += 1
                 progress_percent = int((processed_files / num_files) * 100)
                 self.progressBar.setValue(progress_percent)  # Update the progress bar
