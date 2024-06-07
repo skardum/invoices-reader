@@ -1,12 +1,14 @@
 # invoices reader
 
-This is a Python application for processing invoices it detec QR codes in an image of invoices that made according to zatca.If QR code decoding fails, the application uses the Gemini AI model to extract information from the image. It provides a graphical user interface (GUI) built using PyQt5, allowing users to select a folder containing images with QR codes and specify an Excel file location to save the decoded data.
+This Python application provides a graphical user interface (GUI) built using PyQt5 for processing a folder of invoice images. It enables users to extract essential invoice details including invoice number, date, vendor name, vendor VAT ID, invoice total, and invoice VAT amount. The extracted data is then exported to a specified Excel file.
 
 ## Features:
-
+- User-Friendly Interface: Easy-to-navigate GUI for selecting folders and specifying file paths.
+- Batch Processing: Processes all invoice images within a selected folder.
+- Detailed Extraction: Extracts and organizes key invoice information.
+- Excel Export: Saves the extracted invoice details in a structured Excel file.
 - Decode QR codes from invoice images.
 - Extract information using Gemini AI if QR code decoding fails.
-- Save extracted data to an Excel spreadsheet.
 
 ## Getting Started
 
@@ -30,7 +32,7 @@ $ git clone https://github.com/mohammednabarawy/invoices-reader.git
 Navigate to the project directory
 
 ```
-$ cd qr-detector
+$ cd invoices-reader
 
 ```
 
