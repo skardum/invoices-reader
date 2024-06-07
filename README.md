@@ -66,13 +66,18 @@ $ python main.py
 4. If QR code decoding fails for an invoice, press ai extract to extract information using Gemini AI.
 5. Once processing is complete, the extracted data will be saved to the specified Excel file.
 
+## License and Usage
+This application is free for personal use. For commercial use, please obtain a license by contacting the repository owner.
+
+
 ## Contributions
 
-Contributions are welcome! If you would like to contribute to this project, please follow these steps:
+We welcome contributions from the community! Here's how you can help:
 
 1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make your changes.
+2. Create a new branch (git checkout -b feature-branch).
+3. Implement your feature or bug fix.
 4. Test your changes thoroughly.
-5. Commit your changes and push to your fork.
-6. Create a pull request.
+5. Commit your changes (git commit -m 'Add new feature').
+6. Push to your branch (git push origin feature-branch).
+7. Open a pull request detailing your changes.
