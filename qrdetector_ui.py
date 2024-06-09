@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'd:\original\coding\invoices-reader\qrdetector.ui'
+# Form implementation generated from reading ui file 'f:\original\coding\invoices-reader\qrdetector.ui'
 #
 # Created by: PyQt6 UI code generator 6.7.0
 #

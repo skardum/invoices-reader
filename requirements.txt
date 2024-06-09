@@ -9,4 +9,4 @@ paddlepaddle
 paddleocr 
 spacy
 xlsxwriter
-
+ollama

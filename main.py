@@ -17,6 +17,7 @@ import time
 import sqlite3
 from ocr import ocr_text, update_ui_with_ocrdata, extract_with_gemini
 from ollama_ocr import ocr_for_ollama, process_ollama_and_fill_ui, update_ui_with_ollama_data
+from orientation import ImageProcessor
 
 # Create a connection pool instance
 pool = ConnectionPool(max_connections=5)
@@ -538,6 +539,7 @@ class MainWindow(QMainWindow):
         if folder_path:
             self.folder_path = folder_path
             self.folder_path_label.setText(folder_path)
+            ImageProcessor().correct_image_orientation(folder_path)
 
     def save_location(self):
         file_path, _ = QFileDialog.getSaveFileName(
